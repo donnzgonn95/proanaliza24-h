@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { simpleAdvice, sentiment, setups, alerts } from "@/lib/demo-data";
+import { simpleAdvice, sentiment, setups as demoSetups, alerts as demoAlerts } from "@/lib/demo-data";
 import { useLiveCoins } from "@/lib/binance";
+import { generateSetups, generateAlerts } from "@/lib/signals";
+import { useMemo } from "react";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { ArrowRight, CheckCircle2, Flame, Radio, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,10 +26,19 @@ function Index() {
     warning: "from-warning/30 to-warning/5 border-warning/40",
   };
 
-  const top = setups.slice(0, 3);
   const { data: liveCoins, isError, isLoading } = useLiveCoins();
   const featured = ["BTC", "ETH", "SOL", "ARB"];
   const liveTickers = (liveCoins ?? []).filter((c) => featured.includes(c.symbol));
+
+  const setups = useMemo(
+    () => (liveCoins && liveCoins.length ? generateSetups(liveCoins) : demoSetups),
+    [liveCoins],
+  );
+  const alerts = useMemo(
+    () => (liveCoins && liveCoins.length ? generateAlerts(liveCoins) : demoAlerts),
+    [liveCoins],
+  );
+  const top = setups.slice(0, 3);
 
   return (
     <div className="space-y-6">
