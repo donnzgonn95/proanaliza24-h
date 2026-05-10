@@ -61,11 +61,24 @@ function CoinPage() {
   const sym = symbol.toUpperCase();
   const { data: coins, isLoading } = useTopCoins();
   const coin = coins?.find((c) => c.symbol === sym);
-  const [days, setDays] = useState<number>(30);
-  const [showSMA, setShowSMA] = useState(true);
-  const [showEMA, setShowEMA] = useState(true);
-  const [showRSI, setShowRSI] = useState(true);
-  const [showVolume, setShowVolume] = useState(true);
+  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
+  // Hydrate prefs after mount to keep SSR output deterministic.
+  useEffect(() => setPrefs(loadPrefs()), []);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+      } catch {
+        /* noop */
+      }
+    }
+  }, [prefs]);
+  const { days, showSMA, showEMA, showRSI, showVolume } = prefs;
+  const setDays = (days: number) => setPrefs((p) => ({ ...p, days }));
+  const setShowSMA = (fn: (v: boolean) => boolean) => setPrefs((p) => ({ ...p, showSMA: fn(p.showSMA) }));
+  const setShowEMA = (fn: (v: boolean) => boolean) => setPrefs((p) => ({ ...p, showEMA: fn(p.showEMA) }));
+  const setShowRSI = (fn: (v: boolean) => boolean) => setPrefs((p) => ({ ...p, showRSI: fn(p.showRSI) }));
+  const setShowVolume = (fn: (v: boolean) => boolean) => setPrefs((p) => ({ ...p, showVolume: fn(p.showVolume) }));
 
   const { data: candles, isLoading: loadingChart, isError: chartError } = useCoinOHLC(coin?.id, days);
   const { data: volumes } = useCoinVolumes(coin?.id, days);
