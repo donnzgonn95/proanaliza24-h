@@ -199,12 +199,23 @@ function LiquidityPage() {
             ))}
           </div>
         </div>
-        <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
-          <Legend color="#dc2626" label="Liq Short (powyżej)" />
-          <Legend color="#16a34a" label="Liq Long (poniżej)" />
-          <Legend color="#f59e0b" label="POC" />
-          <Legend color="#22c55e" label="Ściana bid" dashed />
-          <Legend color="#ef4444" label="Ściana ask" dashed />
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <ZoneToggle active={showLiq} onClick={() => setPrefs((p) => ({ ...p, showLiq: !p.showLiq }))} dot="#dc2626">
+            Likwidacje
+          </ZoneToggle>
+          <ZoneToggle active={showPOC} onClick={() => setPrefs((p) => ({ ...p, showPOC: !p.showPOC }))} dot="#f59e0b">
+            POC
+          </ZoneToggle>
+          <ZoneToggle active={showWalls} onClick={() => setPrefs((p) => ({ ...p, showWalls: !p.showWalls }))} dot="#22c55e">
+            Ściany
+          </ZoneToggle>
+          <span className="ml-auto flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+            <Legend color="#dc2626" label="Liq Short" />
+            <Legend color="#16a34a" label="Liq Long" />
+            <Legend color="#f59e0b" label="POC" />
+            <Legend color="#22c55e" label="Bid" dashed />
+            <Legend color="#ef4444" label="Ask" dashed />
+          </span>
         </div>
         <div className="mt-3">
           {!cgId && (
