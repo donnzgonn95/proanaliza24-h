@@ -159,6 +159,9 @@ function Index() {
           ))}
         </ul>
       </section>
+
+      {/* Regime change history */}
+      <RegimeHistoryPanel />
     </div>
   );
 }
