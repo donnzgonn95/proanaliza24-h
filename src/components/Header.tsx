@@ -9,6 +9,7 @@ import {
   BookOpen,
   Bot,
   ChevronDown,
+  Droplets,
   ChevronUp,
   RefreshCw,
   Settings,
