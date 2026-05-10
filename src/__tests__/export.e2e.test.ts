@@ -56,6 +56,7 @@ const {
   exportNotifHistory,
   setNotifSettings,
   clearNotifHistory,
+  alertKey,
 } = await import("../lib/notifications");
 const { generateAlerts } = await import("../lib/signals");
 
