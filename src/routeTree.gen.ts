@@ -9,8 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SlownikRouteImport } from './routes/slownik'
+import { Route as SilaRouteImport } from './routes/sila'
+import { Route as SetupyRouteImport } from './routes/setupy'
+import { Route as SentymentRouteImport } from './routes/sentyment'
+import { Route as PrzeplywRouteImport } from './routes/przeplyw'
+import { Route as AlertyRouteImport } from './routes/alerty'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SlownikRoute = SlownikRouteImport.update({
+  id: '/slownik',
+  path: '/slownik',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SilaRoute = SilaRouteImport.update({
+  id: '/sila',
+  path: '/sila',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SetupyRoute = SetupyRouteImport.update({
+  id: '/setupy',
+  path: '/setupy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SentymentRoute = SentymentRouteImport.update({
+  id: '/sentyment',
+  path: '/sentyment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrzeplywRoute = PrzeplywRouteImport.update({
+  id: '/przeplyw',
+  path: '/przeplyw',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlertyRoute = AlertyRouteImport.update({
+  id: '/alerty',
+  path: '/alerty',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +55,116 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/alerty': typeof AlertyRoute
+  '/przeplyw': typeof PrzeplywRoute
+  '/sentyment': typeof SentymentRoute
+  '/setupy': typeof SetupyRoute
+  '/sila': typeof SilaRoute
+  '/slownik': typeof SlownikRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/alerty': typeof AlertyRoute
+  '/przeplyw': typeof PrzeplywRoute
+  '/sentyment': typeof SentymentRoute
+  '/setupy': typeof SetupyRoute
+  '/sila': typeof SilaRoute
+  '/slownik': typeof SlownikRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/alerty': typeof AlertyRoute
+  '/przeplyw': typeof PrzeplywRoute
+  '/sentyment': typeof SentymentRoute
+  '/setupy': typeof SetupyRoute
+  '/sila': typeof SilaRoute
+  '/slownik': typeof SlownikRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/alerty'
+    | '/przeplyw'
+    | '/sentyment'
+    | '/setupy'
+    | '/sila'
+    | '/slownik'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/alerty'
+    | '/przeplyw'
+    | '/sentyment'
+    | '/setupy'
+    | '/sila'
+    | '/slownik'
+  id:
+    | '__root__'
+    | '/'
+    | '/alerty'
+    | '/przeplyw'
+    | '/sentyment'
+    | '/setupy'
+    | '/sila'
+    | '/slownik'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AlertyRoute: typeof AlertyRoute
+  PrzeplywRoute: typeof PrzeplywRoute
+  SentymentRoute: typeof SentymentRoute
+  SetupyRoute: typeof SetupyRoute
+  SilaRoute: typeof SilaRoute
+  SlownikRoute: typeof SlownikRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/slownik': {
+      id: '/slownik'
+      path: '/slownik'
+      fullPath: '/slownik'
+      preLoaderRoute: typeof SlownikRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sila': {
+      id: '/sila'
+      path: '/sila'
+      fullPath: '/sila'
+      preLoaderRoute: typeof SilaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/setupy': {
+      id: '/setupy'
+      path: '/setupy'
+      fullPath: '/setupy'
+      preLoaderRoute: typeof SetupyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sentyment': {
+      id: '/sentyment'
+      path: '/sentyment'
+      fullPath: '/sentyment'
+      preLoaderRoute: typeof SentymentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/przeplyw': {
+      id: '/przeplyw'
+      path: '/przeplyw'
+      fullPath: '/przeplyw'
+      preLoaderRoute: typeof PrzeplywRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alerty': {
+      id: '/alerty'
+      path: '/alerty'
+      fullPath: '/alerty'
+      preLoaderRoute: typeof AlertyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,7 +177,23 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AlertyRoute: AlertyRoute,
+  PrzeplywRoute: PrzeplywRoute,
+  SentymentRoute: SentymentRoute,
+  SetupyRoute: SetupyRoute,
+  SilaRoute: SilaRoute,
+  SlownikRoute: SlownikRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
