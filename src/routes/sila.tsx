@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { coins as demoCoins } from "@/lib/demo-data";
 import { useLiveCoins } from "@/lib/binance";
+import { useDataSource, DATA_SOURCE_LABELS } from "@/lib/data-source";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { cn } from "@/lib/utils";
-import { Radio } from "lucide-react";
+import { Radio, Settings } from "lucide-react";
 
 export const Route = createFileRoute("/sila")({
   head: () => ({
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/sila")({
 });
 
 function SilaPage() {
+  const source = useDataSource();
   const { data: liveCoins, isLoading, isError, dataUpdatedAt } = useLiveCoins();
   const coins = liveCoins ?? demoCoins;
   const ranked = [...coins].sort((a, b) => b.strength - a.strength);
@@ -27,16 +29,21 @@ function SilaPage() {
         <div>
           <h1 className="text-3xl font-bold">Ranking siły</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Wynik 0–100 łączący zmianę 24h, wolumen i RSI. Im wyżej, tym silniejszy trend.
+            Wynik 0–100: 50% trend 7D + 25% momentum 24h + 25% wolumen względny.
           </p>
         </div>
-        <div className={cn(
-          "flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
-          isError ? "border-bear/40 bg-bear/10 text-bear" : liveCoins ? "border-bull/40 bg-bull/10 text-bull" : "border-border bg-muted text-muted-foreground",
-        )}>
-          <Radio className={cn("h-3 w-3", liveCoins && !isError && "animate-pulse")} />
-          {isError ? "Demo" : isLoading ? "Łączę…" : "Binance LIVE"}
-          {liveCoins && !isError && <span className="num font-normal opacity-70">· {updated}</span>}
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <div className={cn(
+            "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+            isError ? "border-bear/40 bg-bear/10 text-bear" : liveCoins ? "border-bull/40 bg-bull/10 text-bull" : "border-border bg-muted text-muted-foreground",
+          )}>
+            <Radio className={cn("h-3 w-3", liveCoins && !isError && "animate-pulse")} />
+            {isError ? "Demo (błąd)" : isLoading ? "Łączę…" : `${DATA_SOURCE_LABELS[source]} LIVE`}
+            {liveCoins && !isError && <span className="num font-normal opacity-70">· {updated}</span>}
+          </div>
+          <Link to="/ustawienia" className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary">
+            <Settings className="h-3 w-3" /> Zmień źródło
+          </Link>
         </div>
       </header>
 
@@ -45,8 +52,8 @@ function SilaPage() {
           <div className="col-span-1">#</div>
           <div className="col-span-3">Coin</div>
           <div className="col-span-2 text-right">Cena</div>
-          <div className="col-span-2 text-right">24H</div>
-          <div className="col-span-1 text-right">RSI</div>
+          <div className="col-span-1 text-right">24H</div>
+          <div className="col-span-2 text-right">7D</div>
           <div className="col-span-3">Siła</div>
         </div>
         <ul>
@@ -54,16 +61,25 @@ function SilaPage() {
             <li key={c.symbol} className="grid grid-cols-12 items-center gap-2 border-b border-border px-4 py-3 text-sm last:border-b-0 hover:bg-secondary/40">
               <div className="num col-span-1 text-muted-foreground">{i + 1}</div>
               <div className="col-span-3">
-                <div className="font-bold">{c.symbol}</div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold">{c.symbol}</span>
+                  <span className={cn(
+                    "num rounded px-1 py-0.5 text-[10px]",
+                    c.rsi >= 70 && "bg-warning/15 text-warning",
+                    c.rsi <= 30 && "bg-bear/15 text-bear",
+                    c.rsi > 30 && c.rsi < 70 && "bg-muted text-muted-foreground",
+                  )}>RSI {c.rsi}</span>
+                </div>
                 <div className="text-[11px] text-muted-foreground">{c.name}</div>
               </div>
               <div className="num col-span-2 text-right font-semibold">{formatMoney(c.price)}</div>
-              <div className="col-span-2 flex justify-end"><ChangePill value={c.change24h} /></div>
               <div className={cn(
-                "num col-span-1 text-right font-semibold",
-                c.rsi >= 70 && "text-warning",
-                c.rsi <= 30 && "text-bear",
-              )}>{c.rsi}</div>
+                "num col-span-1 text-right text-xs font-semibold",
+                c.change24h >= 0 ? "text-bull" : "text-bear",
+              )}>
+                {c.change24h >= 0 ? "+" : ""}{c.change24h.toFixed(1)}%
+              </div>
+              <div className="col-span-2 flex justify-end"><ChangePill value={c.change7d} /></div>
               <div className="col-span-3">
                 <div className="flex items-center gap-2">
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
@@ -92,7 +108,7 @@ function SilaPage() {
             {ranked.slice(0, 3).map((c) => (
               <li key={c.symbol} className="flex justify-between">
                 <span className="font-semibold">{c.symbol}</span>
-                <span className="num text-bull">{c.change24h >= 0 ? "+" : ""}{c.change24h.toFixed(2)}% (24h)</span>
+                <span className="num text-bull">{c.change7d >= 0 ? "+" : ""}{c.change7d.toFixed(2)}% (7D)</span>
               </li>
             ))}
           </ul>
@@ -103,7 +119,7 @@ function SilaPage() {
             {ranked.slice(-3).reverse().map((c) => (
               <li key={c.symbol} className="flex justify-between">
                 <span className="font-semibold">{c.symbol}</span>
-                <span className="num text-bear">{c.change24h >= 0 ? "+" : ""}{c.change24h.toFixed(2)}% (24h)</span>
+                <span className="num text-bear">{c.change7d >= 0 ? "+" : ""}{c.change7d.toFixed(2)}% (7D)</span>
               </li>
             ))}
           </ul>

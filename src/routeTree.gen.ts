@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UstawieniaRouteImport } from './routes/ustawienia'
 import { Route as SlownikRouteImport } from './routes/slownik'
 import { Route as SilaRouteImport } from './routes/sila'
 import { Route as SetupyRouteImport } from './routes/setupy'
@@ -17,6 +18,11 @@ import { Route as PrzeplywRouteImport } from './routes/przeplyw'
 import { Route as AlertyRouteImport } from './routes/alerty'
 import { Route as IndexRouteImport } from './routes/index'
 
+const UstawieniaRoute = UstawieniaRouteImport.update({
+  id: '/ustawienia',
+  path: '/ustawienia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SlownikRoute = SlownikRouteImport.update({
   id: '/slownik',
   path: '/slownik',
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/setupy': typeof SetupyRoute
   '/sila': typeof SilaRoute
   '/slownik': typeof SlownikRoute
+  '/ustawienia': typeof UstawieniaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/setupy': typeof SetupyRoute
   '/sila': typeof SilaRoute
   '/slownik': typeof SlownikRoute
+  '/ustawienia': typeof UstawieniaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/setupy': typeof SetupyRoute
   '/sila': typeof SilaRoute
   '/slownik': typeof SlownikRoute
+  '/ustawienia': typeof UstawieniaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/setupy'
     | '/sila'
     | '/slownik'
+    | '/ustawienia'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/setupy'
     | '/sila'
     | '/slownik'
+    | '/ustawienia'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/setupy'
     | '/sila'
     | '/slownik'
+    | '/ustawienia'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,10 +131,18 @@ export interface RootRouteChildren {
   SetupyRoute: typeof SetupyRoute
   SilaRoute: typeof SilaRoute
   SlownikRoute: typeof SlownikRoute
+  UstawieniaRoute: typeof UstawieniaRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/ustawienia': {
+      id: '/ustawienia'
+      path: '/ustawienia'
+      fullPath: '/ustawienia'
+      preLoaderRoute: typeof UstawieniaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/slownik': {
       id: '/slownik'
       path: '/slownik'
@@ -183,6 +203,7 @@ const rootRouteChildren: RootRouteChildren = {
   SetupyRoute: SetupyRoute,
   SilaRoute: SilaRoute,
   SlownikRoute: SlownikRoute,
+  UstawieniaRoute: UstawieniaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

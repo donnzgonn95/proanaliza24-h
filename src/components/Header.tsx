@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity, ArrowLeftRight, BarChart3, Bell, BookOpen, Sparkles, Target } from "lucide-react";
+import { Activity, ArrowLeftRight, BarChart3, Bell, BookOpen, Settings, Sparkles, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const nav = [
@@ -10,6 +10,7 @@ const nav = [
   { to: "/setupy", label: "Setupy", icon: Target },
   { to: "/alerty", label: "Alerty", icon: Bell },
   { to: "/slownik", label: "Słownik", icon: BookOpen },
+  { to: "/ustawienia", label: "Ustawienia", icon: Settings },
 ] as const;
 
 export function Header() {
