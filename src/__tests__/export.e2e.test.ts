@@ -117,9 +117,9 @@ describe("E2E: alerty -> historia -> eksport JSON", () => {
 describe("UI dedup: kubełki czasowe", () => {
   const a = { id: "x", time: "", symbol: "BTC", level: "critical" as const, message: "pump +6%" };
 
-  it("preset 5min: drugi alert po 4 min trafia w ten sam kubełek", () => {
-    const t = 1_700_000_000_000;
-    expect(alertKey(a, 5, t)).toBe(alertKey(a, 5, t + 4 * 60_000));
+  it("preset 5min: drugi alert po 1 min trafia w ten sam kubełek", () => {
+    const t = Math.floor(1_700_000_000_000 / (5 * 60_000)) * (5 * 60_000);
+    expect(alertKey(a, 5, t)).toBe(alertKey(a, 5, t + 60_000));
   });
   it("preset 60min: alert po 30 min jest duplikatem", () => {
     const t = 1_700_000_000_000;
