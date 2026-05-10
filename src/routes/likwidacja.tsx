@@ -522,3 +522,31 @@ function Legend({ color, label, dashed }: { color: string; label: string; dashed
     </span>
   );
 }
+
+function ZoneToggle({
+  active,
+  onClick,
+  children,
+  dot,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  dot?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors",
+        active
+          ? "border-primary/40 bg-primary/10 text-foreground"
+          : "border-border bg-background text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {dot && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: dot }} />}
+      {children}
+    </button>
+  );
+}
