@@ -153,3 +153,76 @@ export function generateAlerts(coins: Coin[]): Alert[] {
 
   return out.slice(0, 12);
 }
+
+// ---- Regime-aware adjustments ----
+// Filters/boosts setups & alerts based on the active Market Regime.
+
+export type RegimeNote = { tag: string; tone: "bull" | "bear" | "warning" | "neutral" };
+
+export function adjustSetupsForRegime(setups: Setup[], regime: RegimeId): { setups: Setup[]; note: RegimeNote } {
+  switch (regime) {
+    case "panic":
+    case "risk-off": {
+      // Drop Long, keep Short/Obserwuj, downgrade confidence on remaining
+      const out = setups
+        .filter((s) => s.type !== "Long")
+        .map((s) => ({ ...s, confidence: Math.max(20, s.confidence - 10) }));
+      return { setups: out, note: { tag: regime === "panic" ? "Panic — longi zablokowane" : "Risk-Off — tylko shorty/obserwacja", tone: "bear" } };
+    }
+    case "altseason": {
+      // Boost non-BTC longs, downgrade BTC
+      const out = setups.map((s) =>
+        s.type === "Long"
+          ? { ...s, confidence: Math.min(98, s.confidence + (s.symbol === "BTC" ? -8 : 8)) }
+          : s,
+      );
+      return { setups: out, note: { tag: "Altseason — preferuj alty, BTC w tle", tone: "bull" } };
+    }
+    case "btc-dominance": {
+      // Prefer BTC/ETH, demote small-cap longs to Obserwuj
+      const majors = new Set(["BTC", "ETH"]);
+      const out = setups.map((s) =>
+        s.type === "Long" && !majors.has(s.symbol)
+          ? { ...s, type: "Obserwuj" as const, confidence: Math.max(30, s.confidence - 15) }
+          : s,
+      );
+      return { setups: out, note: { tag: "BTC Dominance — przeważ BTC/ETH", tone: "warning" } };
+    }
+    case "risk-on": {
+      const out = setups.map((s) =>
+        s.type === "Long" ? { ...s, confidence: Math.min(98, s.confidence + 6) } : s,
+      );
+      return { setups: out, note: { tag: "Risk-On — momentum wspiera longi", tone: "bull" } };
+    }
+    case "rotation": {
+      const out = setups.filter((s) => s.type !== "Short");
+      return { setups: out, note: { tag: "Rotation — selekcja, nie kierunek", tone: "warning" } };
+    }
+    case "stablecoin-inflow": {
+      const out = setups.map((s) =>
+        s.type === "Long" ? { ...s, type: "Obserwuj" as const } : s,
+      );
+      return { setups: out, note: { tag: "Stablecoin Inflow — czekaj na breakout", tone: "neutral" } };
+    }
+    default:
+      return { setups, note: { tag: "Neutral — bez modyfikacji", tone: "neutral" } };
+  }
+}
+
+export function adjustAlertsForRegime(alerts: Alert[], regime: RegimeId): Alert[] {
+  // Prepend a synthetic regime alert at the top so the user sees the active context.
+  const map: Record<RegimeId, { level: Alert["level"]; msg: string } | null> = {
+    "panic": { level: "critical", msg: "PANIC MODE — wstrzymaj nowe longi, czekaj na stabilizację (≥3% odbicia z wolumenem)." },
+    "risk-off": { level: "critical", msg: "RISK-OFF — szeroka słabość, ogranicz ekspozycję, podnieś gotówkę." },
+    "altseason": { level: "info", msg: "ALTSEASON — kapitał płynie w alty, realizuj zyski etapami." },
+    "btc-dominance": { level: "warning", msg: "BTC DOMINANCE — przeważ BTC/ETH, alty w defensywie." },
+    "risk-on": { level: "info", msg: "RISK-ON — szeroki rynek rośnie, trzymaj longi z trailing-SL." },
+    "rotation": { level: "warning", msg: "ROTATION — selekcja zamiast indeksu, krótszy timeframe." },
+    "stablecoin-inflow": { level: "info", msg: "STABLECOIN INFLOW — kompresja, czekaj na breakout > 70% breadth." },
+    "neutral": null,
+  };
+  const head = map[regime];
+  if (!head) return alerts;
+  const t = new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
+  return [{ id: "regime-0", time: t, symbol: "MKT", level: head.level, message: head.msg }, ...alerts];
+}
