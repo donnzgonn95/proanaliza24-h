@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Radio } from "lucide-react";
+import { Bell, BellOff, Check, Radio } from "lucide-react";
 import {
   DATA_SOURCES,
   DATA_SOURCE_LABELS,
@@ -11,6 +11,15 @@ import {
 import { fetchBinanceCoins } from "@/lib/providers/binance";
 import { fetchCoingeckoCoins } from "@/lib/providers/coingecko";
 import { fetchCryptoCompareCoins } from "@/lib/providers/cryptocompare";
+import {
+  fireNotification,
+  notifPermission,
+  requestNotifPermission,
+  setNotifSettings,
+  useNotifSettings,
+  type NotifLevel,
+} from "@/lib/notifications";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/ustawienia")({
@@ -91,6 +100,8 @@ function SettingsPage() {
           );
         })}
       </section>
+
+      <NotificationsSection />
 
       <SourceTest />
 
