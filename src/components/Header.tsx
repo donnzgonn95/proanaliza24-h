@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLiveCoins } from "@/lib/binance";
+import { CoinSearch } from "@/components/CoinSearch";
 import eljotLogo from "@/assets/eljot-logo.png";
 
 const nav = [
@@ -76,6 +77,7 @@ export function Header() {
         </Link>
 
         <div className="flex items-center gap-2">
+          <CoinSearch className="hidden md:block" />
           <div
             className="hidden items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-[10px] uppercase tracking-widest text-muted-foreground sm:flex"
             title={`Ostatnia aktualizacja: ${updated}`}
@@ -125,6 +127,9 @@ export function Header() {
                 </Link>
               );
             })}
+          </div>
+          <div className="border-t border-border px-3 py-2 md:hidden">
+            <CoinSearch />
           </div>
           <nav className="flex gap-1 overflow-x-auto border-t border-border px-3 py-2 md:hidden">
             {nav.map((n) => {

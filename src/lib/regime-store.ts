@@ -48,9 +48,12 @@ export function clearRegimeHistory() {
 }
 
 export function useRegimeHistory(): RegimeHistoryEntry[] {
-  const [h, setH] = useState<RegimeHistoryEntry[]>(() => readHistory());
+  // Start empty on server + first client render to avoid hydration mismatch;
+  // hydrate from localStorage after mount.
+  const [h, setH] = useState<RegimeHistoryEntry[]>([]);
   useEffect(() => {
     const reload = () => setH(readHistory());
+    reload();
     window.addEventListener("regime:history-updated", reload);
     window.addEventListener("storage", reload);
     return () => {

@@ -19,6 +19,7 @@ import { Route as LikwidacjaRouteImport } from './routes/likwidacja'
 import { Route as AsystentRouteImport } from './routes/asystent'
 import { Route as AlertyRouteImport } from './routes/alerty'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CoinSymbolRouteImport } from './routes/coin.$symbol'
 
 const UstawieniaRoute = UstawieniaRouteImport.update({
   id: '/ustawienia',
@@ -70,6 +71,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoinSymbolRoute = CoinSymbolRouteImport.update({
+  id: '/coin/$symbol',
+  path: '/coin/$symbol',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/sila': typeof SilaRoute
   '/slownik': typeof SlownikRoute
   '/ustawienia': typeof UstawieniaRoute
+  '/coin/$symbol': typeof CoinSymbolRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/sila': typeof SilaRoute
   '/slownik': typeof SlownikRoute
   '/ustawienia': typeof UstawieniaRoute
+  '/coin/$symbol': typeof CoinSymbolRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/sila': typeof SilaRoute
   '/slownik': typeof SlownikRoute
   '/ustawienia': typeof UstawieniaRoute
+  '/coin/$symbol': typeof CoinSymbolRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/sila'
     | '/slownik'
     | '/ustawienia'
+    | '/coin/$symbol'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/sila'
     | '/slownik'
     | '/ustawienia'
+    | '/coin/$symbol'
   id:
     | '__root__'
     | '/'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/sila'
     | '/slownik'
     | '/ustawienia'
+    | '/coin/$symbol'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -158,6 +170,7 @@ export interface RootRouteChildren {
   SilaRoute: typeof SilaRoute
   SlownikRoute: typeof SlownikRoute
   UstawieniaRoute: typeof UstawieniaRoute
+  CoinSymbolRoute: typeof CoinSymbolRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -232,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/coin/$symbol': {
+      id: '/coin/$symbol'
+      path: '/coin/$symbol'
+      fullPath: '/coin/$symbol'
+      preLoaderRoute: typeof CoinSymbolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -246,6 +266,7 @@ const rootRouteChildren: RootRouteChildren = {
   SilaRoute: SilaRoute,
   SlownikRoute: SlownikRoute,
   UstawieniaRoute: UstawieniaRoute,
+  CoinSymbolRoute: CoinSymbolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
