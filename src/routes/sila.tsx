@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { coins } from "@/lib/demo-data";
+import { coins as demoCoins } from "@/lib/demo-data";
+import { useLiveCoins } from "@/lib/binance";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { cn } from "@/lib/utils";
+import { Radio } from "lucide-react";
 
 export const Route = createFileRoute("/sila")({
   head: () => ({
@@ -14,15 +16,28 @@ export const Route = createFileRoute("/sila")({
 });
 
 function SilaPage() {
+  const { data: liveCoins, isLoading, isError, dataUpdatedAt } = useLiveCoins();
+  const coins = liveCoins ?? demoCoins;
   const ranked = [...coins].sort((a, b) => b.strength - a.strength);
+  const updated = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString("pl-PL") : "—";
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold">Ranking siły</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Wynik 0–100 łączący zmianę 7D, wolumen i RSI. Im wyżej, tym silniejszy trend.
-        </p>
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Ranking siły</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Wynik 0–100 łączący zmianę 24h, wolumen i RSI. Im wyżej, tym silniejszy trend.
+          </p>
+        </div>
+        <div className={cn(
+          "flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+          isError ? "border-bear/40 bg-bear/10 text-bear" : liveCoins ? "border-bull/40 bg-bull/10 text-bull" : "border-border bg-muted text-muted-foreground",
+        )}>
+          <Radio className={cn("h-3 w-3", liveCoins && !isError && "animate-pulse")} />
+          {isError ? "Demo" : isLoading ? "Łączę…" : "Binance LIVE"}
+          {liveCoins && !isError && <span className="num font-normal opacity-70">· {updated}</span>}
+        </div>
       </header>
 
       <section className="overflow-hidden rounded-xl border border-border bg-card">
@@ -77,7 +92,7 @@ function SilaPage() {
             {ranked.slice(0, 3).map((c) => (
               <li key={c.symbol} className="flex justify-between">
                 <span className="font-semibold">{c.symbol}</span>
-                <span className="num text-bull">+{c.change7d}% (7D)</span>
+                <span className="num text-bull">{c.change24h >= 0 ? "+" : ""}{c.change24h.toFixed(2)}% (24h)</span>
               </li>
             ))}
           </ul>
@@ -88,7 +103,7 @@ function SilaPage() {
             {ranked.slice(-3).reverse().map((c) => (
               <li key={c.symbol} className="flex justify-between">
                 <span className="font-semibold">{c.symbol}</span>
-                <span className="num text-bear">{c.change7d}% (7D)</span>
+                <span className="num text-bear">{c.change24h >= 0 ? "+" : ""}{c.change24h.toFixed(2)}% (24h)</span>
               </li>
             ))}
           </ul>
