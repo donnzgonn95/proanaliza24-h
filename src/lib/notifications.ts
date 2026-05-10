@@ -18,6 +18,8 @@ export type NotifSettings = {
   levels: Record<NotifLevel, boolean>;
   inAppToast: boolean;
   quietHours: QuietHours;
+  /** Minimal time window between identical alerts (minutes). */
+  dedupMinutes: number;
 };
 
 const DEFAULTS: NotifSettings = {
@@ -25,7 +27,10 @@ const DEFAULTS: NotifSettings = {
   levels: { critical: true, warning: true, info: false },
   inAppToast: true,
   quietHours: { enabled: false, from: "22:00", to: "07:00" },
+  dedupMinutes: 60,
 };
+
+export const DEDUP_PRESETS = [5, 15, 30, 60, 180, 360] as const;
 
 const KEY = "cryptopuls:notif-settings";
 const SEEN_KEY = "cryptopuls:notif-seen";
@@ -40,6 +45,7 @@ export type NotifHistoryItem = {
   level: NotifLevel;
   symbol: string;
   ts: number;
+  muted?: boolean;
 };
 
 function read(): NotifSettings {
@@ -53,6 +59,7 @@ function read(): NotifSettings {
       inAppToast: p.inAppToast ?? true,
       levels: { ...DEFAULTS.levels, ...(p.levels ?? {}) },
       quietHours: { ...DEFAULTS.quietHours, ...(p.quietHours ?? {}) },
+      dedupMinutes: typeof p.dedupMinutes === "number" ? p.dedupMinutes : DEFAULTS.dedupMinutes,
     };
   } catch {
     return DEFAULTS;
@@ -101,9 +108,15 @@ export async function requestNotifPermission(): Promise<NotificationPermission |
   return p;
 }
 
-function alertKey(a: Alert): string {
-  const hourBucket = new Date().toISOString().slice(0, 13);
-  return `${a.symbol}:${a.level}:${a.message.slice(0, 40)}:${hourBucket}`;
+/**
+ * Build a deduplication key for an alert. The `bucketMinutes` controls how
+ * often the same alert can re-fire — within a single bucket window the key
+ * is identical, so the alert is suppressed.
+ */
+export function alertKey(a: Alert, bucketMinutes = 60, now = Date.now()): string {
+  const size = Math.max(1, bucketMinutes) * 60_000;
+  const bucket = Math.floor(now / size);
+  return `${a.symbol}:${a.level}:${a.message.slice(0, 40)}:${bucket}`;
 }
 
 function loadSeen(): Set<string> {
@@ -169,6 +182,28 @@ export function clearNotifHistory() {
   emitHistory();
 }
 
+/** Serialize history to JSON string (pretty-printed). */
+export function serializeHistory(items?: NotifHistoryItem[]): string {
+  return JSON.stringify(items ?? loadHistory(), null, 2);
+}
+
+/** Trigger a browser download of the current history as a JSON file. */
+export function exportNotifHistory(): { ok: boolean; count: number } {
+  if (typeof window === "undefined") return { ok: false, count: 0 };
+  const items = loadHistory();
+  const blob = new Blob([serializeHistory(items)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  a.href = url;
+  a.download = `cryptopuls-alerts-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return { ok: true, count: items.length };
+}
+
 // ============== Quiet hours ==============
 
 /** Returns true if `now` falls inside quiet hours window (handles overnight). */
@@ -203,9 +238,10 @@ export function fireNotification(a: Alert, settings: NotifSettings, opts?: { for
     level: a.level,
     symbol: a.symbol,
     ts: Date.now(),
+    muted,
   });
 
-  if (muted) return;
+  if (muted) return { delivered: false, muted: true };
 
   if (settings.inAppToast) {
     const fn = a.level === "critical" ? toast.error : a.level === "warning" ? toast.warning : toast.info;
@@ -222,6 +258,7 @@ export function fireNotification(a: Alert, settings: NotifSettings, opts?: { for
       // ignore
     }
   }
+  return { delivered: true, muted: false };
 }
 
 /** Fires a hard-coded test push notification (uses Notification API + toast). */
@@ -258,7 +295,7 @@ export function useAlertNotifications() {
 
     for (const a of alerts) {
       if (!settings.levels[a.level]) continue;
-      const k = alertKey(a);
+      const k = alertKey(a, settings.dedupMinutes);
       if (seen.has(k)) continue;
       seen.add(k);
       if (!firstRun) fireNotification(a, settings);
