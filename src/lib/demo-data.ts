@@ -10,6 +10,16 @@ export type Coin = {
   marketCap: number;
   rsi: number;
   strength: number; // 0-100 relative strength score
+  // Optional metadata used by extended providers (top 100, search, detail page)
+  id?: string;        // CoinGecko id, e.g. "bitcoin"
+  image?: string;     // logo URL
+  rank?: number;      // market cap rank
+  high24h?: number;
+  low24h?: number;
+  ath?: number;
+  athChangePct?: number;
+  circulatingSupply?: number;
+  totalSupply?: number;
 };
 
 export const coins: Coin[] = [
