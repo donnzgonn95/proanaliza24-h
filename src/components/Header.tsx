@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useLiveCoins } from "@/lib/binance";
 import { CoinSearch } from "@/components/CoinSearch";
+import { WatchlistMenu } from "@/components/WatchlistMenu";
 import eljotLogo from "@/assets/eljot-logo.png";
 
 const nav = [
@@ -78,6 +79,7 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <CoinSearch className="hidden md:block" />
+          <WatchlistMenu />
           <div
             className="hidden items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-[10px] uppercase tracking-widest text-muted-foreground sm:flex"
             title={`Ostatnia aktualizacja: ${updated}`}

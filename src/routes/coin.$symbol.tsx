@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { useTopCoins, useCoinOHLC } from "@/lib/top-coins";
-import { CandlestickChart } from "@/components/CandlestickChart";
+import { useTopCoins, useCoinOHLC, useCoinVolumes } from "@/lib/top-coins";
+import { CandlestickChart, type ChartOverlay } from "@/components/CandlestickChart";
+import { RSIChart } from "@/components/RSIChart";
+import { WatchlistStar } from "@/components/WatchlistStar";
 import { ChangePill, formatMoney } from "@/components/StatPill";
+import { sma, ema, rsi as rsiCalc } from "@/lib/indicators";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/coin/$symbol")({
@@ -12,7 +15,7 @@ export const Route = createFileRoute("/coin/$symbol")({
       { title: `${params.symbol.toUpperCase()} — szczegóły kryptowaluty` },
       {
         name: "description",
-        content: `Szczegółowe statystyki, mapa świec (candlestick) oraz dane rynkowe ${params.symbol.toUpperCase()}.`,
+        content: `Szczegółowe statystyki, świece OHLC, SMA/EMA, RSI i wolumen dla ${params.symbol.toUpperCase()}.`,
       },
     ],
   }),
@@ -44,7 +47,23 @@ function CoinPage() {
   const { data: coins, isLoading } = useTopCoins();
   const coin = coins?.find((c) => c.symbol === sym);
   const [days, setDays] = useState<number>(30);
+  const [showSMA, setShowSMA] = useState(true);
+  const [showEMA, setShowEMA] = useState(true);
+  const [showRSI, setShowRSI] = useState(true);
+  const [showVolume, setShowVolume] = useState(true);
+
   const { data: candles, isLoading: loadingChart, isError: chartError } = useCoinOHLC(coin?.id, days);
+  const { data: volumes } = useCoinVolumes(coin?.id, days);
+
+  const overlays: ChartOverlay[] = useMemo(() => {
+    if (!candles?.length) return [];
+    const list: ChartOverlay[] = [];
+    if (showSMA) list.push({ id: "sma20", color: "#3b82f6", title: "SMA 20", data: sma(candles, 20) });
+    if (showEMA) list.push({ id: "ema50", color: "#f59e0b", title: "EMA 50", data: ema(candles, 50) });
+    return list;
+  }, [candles, showSMA, showEMA]);
+
+  const rsiData = useMemo(() => (candles?.length ? rsiCalc(candles, 14) : []), [candles]);
 
   if (!isLoading && coins && !coin) {
     throw notFound();
@@ -62,8 +81,8 @@ function CoinPage() {
       <section className="rounded-xl border border-border bg-card p-5">
         <div className="flex flex-wrap items-center gap-4">
           {coin?.image && <img src={coin.image} alt={coin.name} width={48} height={48} className="h-12 w-12 rounded-full" />}
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-bold">{coin?.name ?? sym}</h1>
               <span className="rounded bg-secondary px-2 py-0.5 text-xs font-bold uppercase">{sym}</span>
               {coin?.rank && (
@@ -71,13 +90,14 @@ function CoinPage() {
               )}
             </div>
             {coin && (
-              <div className="mt-1 flex items-center gap-3">
+              <div className="mt-1 flex flex-wrap items-center gap-3">
                 <span className="num text-2xl font-bold">{formatMoney(coin.price)}</span>
                 <ChangePill value={coin.change24h} />
                 <span className="text-xs text-muted-foreground">24h</span>
               </div>
             )}
           </div>
+          <WatchlistStar symbol={sym} />
         </div>
       </section>
 
@@ -95,36 +115,81 @@ function CoinPage() {
         </section>
       )}
 
-      {/* Candlestick chart */}
+      {/* Candlestick chart + controls */}
       <section className="rounded-xl border border-border bg-card p-5">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-bold">Mapa świec (Candlestick)</h2>
-          <div className="flex gap-1">
-            {RANGES.map((r) => (
-              <button
-                key={r.days}
-                onClick={() => setDays(r.days)}
-                className={cn(
-                  "rounded-md border border-border px-3 py-1 text-xs",
-                  days === r.days ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {r.label}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-2">
+            <Toggle active={showSMA} onClick={() => setShowSMA((v) => !v)} dot="#3b82f6">SMA 20</Toggle>
+            <Toggle active={showEMA} onClick={() => setShowEMA((v) => !v)} dot="#f59e0b">EMA 50</Toggle>
+            <Toggle active={showVolume} onClick={() => setShowVolume((v) => !v)}>Wolumen</Toggle>
+            <Toggle active={showRSI} onClick={() => setShowRSI((v) => !v)} dot="#a855f7">RSI 14</Toggle>
           </div>
+        </div>
+        <div className="mb-3 flex flex-wrap gap-1">
+          {RANGES.map((r) => (
+            <button
+              key={r.days}
+              onClick={() => setDays(r.days)}
+              className={cn(
+                "rounded-md border border-border px-3 py-1 text-xs",
+                days === r.days ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {r.label}
+            </button>
+          ))}
         </div>
         {loadingChart && <div className="py-12 text-center text-sm text-muted-foreground">Ładuję dane świec…</div>}
         {chartError && <div className="py-12 text-center text-sm text-bear">Nie udało się pobrać danych OHLC.</div>}
-        {candles && candles.length > 0 && <CandlestickChart data={candles} />}
+        {candles && candles.length > 0 && (
+          <CandlestickChart data={candles} overlays={overlays} volumes={showVolume ? volumes : undefined} />
+        )}
         {candles && candles.length === 0 && (
           <div className="py-12 text-center text-sm text-muted-foreground">Brak danych świecowych dla tego zakresu.</div>
         )}
+
+        {showRSI && rsiData.length > 0 && (
+          <div className="mt-4 border-t border-border pt-3">
+            <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+              <span>RSI 14 — strefy 30/70</span>
+              <span className="num">aktualne: {rsiData[rsiData.length - 1].value.toFixed(1)}</span>
+            </div>
+            <RSIChart data={rsiData} />
+          </div>
+        )}
+
         <p className="mt-3 text-[11px] text-muted-foreground">
-          Dane: CoinGecko OHLC. Granularność świec dobierana automatycznie przez API w zależności od zakresu.
+          Dane: CoinGecko OHLC + market_chart. Wskaźniki SMA/EMA/RSI obliczane lokalnie z zamknięć świec — nie generują dodatkowych zapytań do API.
         </p>
       </section>
     </div>
+  );
+}
+
+function Toggle({
+  active,
+  onClick,
+  children,
+  dot,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  dot?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors",
+        active ? "border-primary/40 bg-primary/10 text-foreground" : "border-border bg-background text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {dot && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: dot }} />}
+      {children}
+    </button>
   );
 }
 

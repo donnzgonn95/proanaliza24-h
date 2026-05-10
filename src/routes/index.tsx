@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { MarketRegimeBanner } from "@/components/MarketRegimeBanner";
 import { RegimeHistoryPanel } from "@/components/RegimeHistoryPanel";
+import { WatchlistPanel } from "@/components/WatchlistPanel";
 import { ArrowRight, Radio, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +52,9 @@ function Index() {
     <div className="space-y-6">
       {/* Market Regime Engine — auto-detected market phase */}
       <MarketRegimeBanner coins={liveCoins ?? undefined} />
+
+      {/* User watchlist (favorites) */}
+      <WatchlistPanel />
 
       {/* Live tickers — Binance */}
       <section className="rounded-xl border border-border bg-card p-4">
