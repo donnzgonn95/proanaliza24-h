@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLiveCoins } from "@/lib/binance";
 import { coins as demoCoins } from "@/lib/demo-data";
 import { useTopCoins, useCoinOHLC } from "@/lib/top-coins";
@@ -68,33 +68,65 @@ function LiquidityPage() {
   // Resolve CoinGecko id from top100 to fetch OHLC for the candlestick view.
   const { data: top } = useTopCoins();
   const cgId = top?.find((c) => c.symbol === coin.symbol)?.id;
-  const [days, setDays] = useState<number>(7);
+
+  // Persisted chart prefs (timeframe + zone toggles).
+  type LiqPrefs = { days: number; showLiq: boolean; showPOC: boolean; showWalls: boolean };
+  const PREFS_KEY = "liq:chart-prefs:v1";
+  const DEFAULT_PREFS: LiqPrefs = { days: 7, showLiq: true, showPOC: true, showWalls: true };
+  const [prefs, setPrefs] = useState<LiqPrefs>(DEFAULT_PREFS);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(PREFS_KEY);
+      if (raw) setPrefs({ ...DEFAULT_PREFS, ...(JSON.parse(raw) as Partial<LiqPrefs>) });
+    } catch {
+      /* noop */
+    }
+  }, []);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+      } catch {
+        /* noop */
+      }
+    }
+  }, [prefs]);
+  const { days, showLiq, showPOC, showWalls } = prefs;
+  const setDays = (d: number) => setPrefs((p) => ({ ...p, days: d }));
+
   const { data: candles, isLoading: loadingCandles, isError: candlesError } = useCoinOHLC(cgId, days);
 
   // Build price-line zones from microstructure data.
   const zones = useMemo<ChartZone[]>(() => {
     const out: ChartZone[] = [];
-    const heat = [...heatmap].sort((a, b) => b.notional - a.notional).slice(0, 4);
-    for (const h of heat) {
-      out.push({
-        price: h.price,
-        color: h.side === "long" ? "#16a34a" : "#dc2626",
-        label: `${h.side === "long" ? "Liq L" : "Liq S"} ${h.leverage}x`,
-        lineStyle: 2,
-      });
+    if (showLiq) {
+      const heat = [...heatmap].sort((a, b) => b.notional - a.notional).slice(0, 4);
+      for (const h of heat) {
+        out.push({
+          price: h.price,
+          color: h.side === "long" ? "#16a34a" : "#dc2626",
+          label: `${h.side === "long" ? "Liq L" : "Liq S"} ${h.leverage}x`,
+          lineStyle: 2,
+        });
+      }
     }
-    const poc = clusters.find((c) => c.poc);
-    if (poc) out.push({ price: poc.price, color: "#f59e0b", label: "POC", lineStyle: 0 });
-    for (const w of book.topWalls.slice(0, 2)) {
-      out.push({
-        price: w.price,
-        color: w.side === "bid" ? "#22c55e" : "#ef4444",
-        label: `${w.side === "bid" ? "Ściana bid" : "Ściana ask"}`,
-        lineStyle: 3,
-      });
+    if (showPOC) {
+      const poc = clusters.find((c) => c.poc);
+      if (poc) out.push({ price: poc.price, color: "#f59e0b", label: "POC", lineStyle: 0 });
+    }
+    if (showWalls) {
+      for (const w of book.topWalls.slice(0, 2)) {
+        out.push({
+          price: w.price,
+          color: w.side === "bid" ? "#22c55e" : "#ef4444",
+          label: `${w.side === "bid" ? "Ściana bid" : "Ściana ask"}`,
+          lineStyle: 3,
+        });
+      }
     }
     return out;
-  }, [heatmap, clusters, book]);
+  }, [heatmap, clusters, book, showLiq, showPOC, showWalls]);
 
   return (
     <div className="space-y-6">
@@ -167,12 +199,23 @@ function LiquidityPage() {
             ))}
           </div>
         </div>
-        <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
-          <Legend color="#dc2626" label="Liq Short (powyżej)" />
-          <Legend color="#16a34a" label="Liq Long (poniżej)" />
-          <Legend color="#f59e0b" label="POC" />
-          <Legend color="#22c55e" label="Ściana bid" dashed />
-          <Legend color="#ef4444" label="Ściana ask" dashed />
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <ZoneToggle active={showLiq} onClick={() => setPrefs((p) => ({ ...p, showLiq: !p.showLiq }))} dot="#dc2626">
+            Likwidacje
+          </ZoneToggle>
+          <ZoneToggle active={showPOC} onClick={() => setPrefs((p) => ({ ...p, showPOC: !p.showPOC }))} dot="#f59e0b">
+            POC
+          </ZoneToggle>
+          <ZoneToggle active={showWalls} onClick={() => setPrefs((p) => ({ ...p, showWalls: !p.showWalls }))} dot="#22c55e">
+            Ściany
+          </ZoneToggle>
+          <span className="ml-auto flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+            <Legend color="#dc2626" label="Liq Short" />
+            <Legend color="#16a34a" label="Liq Long" />
+            <Legend color="#f59e0b" label="POC" />
+            <Legend color="#22c55e" label="Bid" dashed />
+            <Legend color="#ef4444" label="Ask" dashed />
+          </span>
         </div>
         <div className="mt-3">
           {!cgId && (
@@ -477,5 +520,33 @@ function Legend({ color, label, dashed }: { color: string; label: string; dashed
       />
       {label}
     </span>
+  );
+}
+
+function ZoneToggle({
+  active,
+  onClick,
+  children,
+  dot,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  dot?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors",
+        active
+          ? "border-primary/40 bg-primary/10 text-foreground"
+          : "border-border bg-background text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {dot && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: dot }} />}
+      {children}
+    </button>
   );
 }
