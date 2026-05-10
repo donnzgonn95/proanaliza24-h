@@ -309,11 +309,42 @@ function NotificationsSection() {
               />
             </label>
           </div>
+          <QuietHoursPreview qh={settings.quietHours} />
           {settings.quietHours.enabled && (
             <div className={cn("text-xs", muted ? "text-warning" : "text-muted-foreground")}>
               {muted ? "🌙 Teraz trwa cisza — powiadomienia są wyciszone." : "🔔 Poza godzinami ciszy — powiadomienia działają."}
             </div>
           )}
+        </div>
+
+        {/* Limity duplikacji */}
+        <div className="space-y-2 border-t border-border pt-4" data-testid="dedup-section">
+          <div>
+            <div className="text-sm font-semibold">Limit duplikacji alertów</div>
+            <div className="text-xs text-muted-foreground">
+              Ten sam alert (symbol + poziom + treść) nie powtórzy się częściej niż co wybrany czas.
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {DEDUP_PRESETS.map((m) => {
+              const active = settings.dedupMinutes === m;
+              return (
+                <button
+                  key={m}
+                  data-testid={`dedup-${m}`}
+                  onClick={() => setNotifSettings({ dedupMinutes: m })}
+                  className={cn(
+                    "rounded-md border px-2.5 py-1 text-xs num transition-colors",
+                    active
+                      ? "border-primary bg-primary/15 text-primary"
+                      : "border-border bg-background hover:bg-secondary",
+                  )}
+                >
+                  {m < 60 ? `${m} min` : `${m / 60} h`}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2 border-t border-border pt-4">
