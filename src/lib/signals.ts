@@ -1,6 +1,7 @@
 // Generate setups & alerts dynamically from live coin data.
 import type { Coin } from "./demo-data";
 import type { Setup, Alert } from "./demo-data";
+import type { RegimeId } from "./market-regime";
 
 function round(n: number, dp = 2) {
   const f = Math.pow(10, dp);
