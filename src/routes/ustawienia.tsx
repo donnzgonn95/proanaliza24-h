@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Radio } from "lucide-react";
+import { Bell, BellOff, Check, Radio } from "lucide-react";
 import {
   DATA_SOURCES,
   DATA_SOURCE_LABELS,
@@ -11,6 +11,15 @@ import {
 import { fetchBinanceCoins } from "@/lib/providers/binance";
 import { fetchCoingeckoCoins } from "@/lib/providers/coingecko";
 import { fetchCryptoCompareCoins } from "@/lib/providers/cryptocompare";
+import {
+  fireNotification,
+  notifPermission,
+  requestNotifPermission,
+  setNotifSettings,
+  useNotifSettings,
+  type NotifLevel,
+} from "@/lib/notifications";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/ustawienia")({
@@ -92,6 +101,8 @@ function SettingsPage() {
         })}
       </section>
 
+      <NotificationsSection />
+
       <SourceTest />
 
       <section className="rounded-xl border border-border bg-card/60 p-5 text-sm">
@@ -154,6 +165,147 @@ function SourceTest() {
           ))}
         </div>
       )}
+    </section>
+  );
+}
+
+const LEVEL_META: Record<NotifLevel, { label: string; desc: string; tone: string }> = {
+  critical: { label: "Krytyczne", desc: "Silne ruchy ≥|5%| 24h, panic / pump", tone: "text-bear" },
+  warning: { label: "Ostrzeżenia", desc: "Wykupienie / wyprzedanie RSI ≥70 lub ≤30", tone: "text-warning" },
+  info: { label: "Info", desc: "Trendy 7D, rotacja kapitału", tone: "text-muted-foreground" },
+};
+
+function NotificationsSection() {
+  const settings = useNotifSettings();
+  const perm = notifPermission();
+  const supported = perm !== "unsupported";
+  const granted = perm === "granted";
+
+  return (
+    <section className="space-y-3">
+      <div>
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground">Powiadomienia</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Otrzymuj alerty z poziomów <strong>critical / warning / info</strong> generowane na bieżąco z danych live.
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {settings.enabled && granted ? (
+              <Bell className="h-5 w-5 text-bull" />
+            ) : (
+              <BellOff className="h-5 w-5 text-muted-foreground" />
+            )}
+            <div>
+              <div className="text-sm font-semibold">Powiadomienia push (przeglądarka)</div>
+              <div className="text-xs text-muted-foreground">
+                {!supported
+                  ? "Twoja przeglądarka nie obsługuje powiadomień."
+                  : perm === "denied"
+                    ? "Zablokowane w przeglądarce — odblokuj w ustawieniach strony."
+                    : granted
+                      ? "Pozwolenie udzielone — gotowe."
+                      : "Wymaga pozwolenia przeglądarki."}
+              </div>
+            </div>
+          </div>
+          <Switch
+            checked={settings.enabled && granted}
+            disabled={!supported || perm === "denied"}
+            onCheckedChange={async (v) => {
+              if (v && perm === "default") {
+                const r = await requestNotifPermission();
+                if (r !== "granted") return;
+              }
+              setNotifSettings({ enabled: v });
+            }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
+          <div>
+            <div className="text-sm font-semibold">Powiadomienia w aplikacji (toast)</div>
+            <div className="text-xs text-muted-foreground">
+              Pokazuj „dymki" w prawym górnym rogu, nawet bez pozwolenia push.
+            </div>
+          </div>
+          <Switch
+            checked={settings.inAppToast}
+            onCheckedChange={(v) => setNotifSettings({ inAppToast: v })}
+          />
+        </div>
+
+        <div className="space-y-2 border-t border-border pt-4">
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Poziomy alertów
+          </div>
+          {(Object.keys(LEVEL_META) as NotifLevel[]).map((lvl) => {
+            const m = LEVEL_META[lvl];
+            return (
+              <label key={lvl} className="flex items-center justify-between gap-3 rounded-lg bg-background/40 px-3 py-2 cursor-pointer">
+                <div>
+                  <div className={cn("text-sm font-semibold", m.tone)}>{m.label}</div>
+                  <div className="text-xs text-muted-foreground">{m.desc}</div>
+                </div>
+                <Switch
+                  checked={settings.levels[lvl]}
+                  onCheckedChange={(v) =>
+                    setNotifSettings({ levels: { ...settings.levels, [lvl]: v } })
+                  }
+                />
+              </label>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+          <button
+            onClick={() =>
+              fireNotification(
+                {
+                  id: "test",
+                  time: new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }),
+                  symbol: "TEST",
+                  level: "critical",
+                  message: "Tak będzie wyglądał alert krytyczny — silny ruch +6.2% w 24h.",
+                },
+                settings,
+              )
+            }
+            className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-secondary"
+          >
+            Testuj critical
+          </button>
+          <button
+            onClick={() =>
+              fireNotification(
+                { id: "t2", time: "", symbol: "ETH", level: "warning", message: "RSI 72 — strefa wykupienia." },
+                settings,
+              )
+            }
+            className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-secondary"
+          >
+            Testuj warning
+          </button>
+          <button
+            onClick={() =>
+              fireNotification(
+                { id: "t3", time: "", symbol: "SOL", level: "info", message: "Trend 7D +14% — lider rotacji." },
+                settings,
+              )
+            }
+            className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-secondary"
+          >
+            Testuj info
+          </button>
+        </div>
+
+        <p className="text-xs text-muted-foreground">
+          E-mail wymaga włączenia Lovable Cloud (backend) — daj znać, gdy chcesz dodać tę opcję.
+        </p>
+      </div>
     </section>
   );
 }
