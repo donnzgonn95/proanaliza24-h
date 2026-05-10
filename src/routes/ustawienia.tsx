@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, BellOff, Check, Radio } from "lucide-react";
+import { Bell, BellOff, Check, Radio, Send, Trash2 } from "lucide-react";
 import {
   DATA_SOURCES,
   DATA_SOURCE_LABELS,
@@ -12,10 +12,14 @@ import { fetchBinanceCoins } from "@/lib/providers/binance";
 import { fetchCoingeckoCoins } from "@/lib/providers/coingecko";
 import { fetchCryptoCompareCoins } from "@/lib/providers/cryptocompare";
 import {
+  clearNotifHistory,
   fireNotification,
+  isInQuietHours,
   notifPermission,
   requestNotifPermission,
+  sendTestPush,
   setNotifSettings,
+  useNotifHistory,
   useNotifSettings,
   type NotifLevel,
 } from "@/lib/notifications";
@@ -177,9 +181,11 @@ const LEVEL_META: Record<NotifLevel, { label: string; desc: string; tone: string
 
 function NotificationsSection() {
   const settings = useNotifSettings();
+  const history = useNotifHistory();
   const perm = notifPermission();
   const supported = perm !== "unsupported";
   const granted = perm === "granted";
+  const muted = isInQuietHours(settings.quietHours);
 
   return (
     <section className="space-y-3">
@@ -190,7 +196,7 @@ function NotificationsSection() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+      <div className="rounded-xl border border-border bg-card p-5 space-y-4" data-testid="notifications-panel">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             {settings.enabled && granted ? (
@@ -260,7 +266,61 @@ function NotificationsSection() {
           })}
         </div>
 
+        {/* Harmonogram odcięć / quiet hours */}
+        <div className="space-y-3 border-t border-border pt-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold">Harmonogram (godziny ciszy)</div>
+              <div className="text-xs text-muted-foreground">
+                Wycisza powiadomienia w wybranym przedziale. Alerty trafiają wtedy tylko do historii.
+              </div>
+            </div>
+            <Switch
+              checked={settings.quietHours.enabled}
+              onCheckedChange={(v) =>
+                setNotifSettings({ quietHours: { ...settings.quietHours, enabled: v } })
+              }
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="flex flex-col gap-1 text-xs">
+              <span className="text-muted-foreground">Od</span>
+              <input
+                type="time"
+                value={settings.quietHours.from}
+                onChange={(e) =>
+                  setNotifSettings({ quietHours: { ...settings.quietHours, from: e.target.value } })
+                }
+                className="rounded-md border border-border bg-background px-2 py-1.5 text-sm num"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-xs">
+              <span className="text-muted-foreground">Do</span>
+              <input
+                type="time"
+                value={settings.quietHours.to}
+                onChange={(e) =>
+                  setNotifSettings({ quietHours: { ...settings.quietHours, to: e.target.value } })
+                }
+                className="rounded-md border border-border bg-background px-2 py-1.5 text-sm num"
+              />
+            </label>
+          </div>
+          {settings.quietHours.enabled && (
+            <div className={cn("text-xs", muted ? "text-warning" : "text-muted-foreground")}>
+              {muted ? "🌙 Teraz trwa cisza — powiadomienia są wyciszone." : "🔔 Poza godzinami ciszy — powiadomienia działają."}
+            </div>
+          )}
+        </div>
+
         <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+          <button
+            data-testid="test-push"
+            onClick={() => sendTestPush(settings)}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90"
+          >
+            <Send className="h-3 w-3" /> Test push
+          </button>
           <button
             onClick={() =>
               fireNotification(
@@ -302,9 +362,40 @@ function NotificationsSection() {
           </button>
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          E-mail wymaga włączenia Lovable Cloud (backend) — daj znać, gdy chcesz dodać tę opcję.
-        </p>
+        {/* Historia */}
+        <div className="space-y-2 border-t border-border pt-4" data-testid="notif-history">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Historia powiadomień ({history.length})
+            </div>
+            <button
+              data-testid="clear-history"
+              onClick={() => clearNotifHistory()}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs hover:bg-secondary"
+            >
+              <Trash2 className="h-3 w-3" /> Wyczyść
+            </button>
+          </div>
+          {history.length === 0 ? (
+            <div className="rounded-md bg-background/40 p-3 text-xs text-muted-foreground">
+              Brak zapisanych powiadomień. Kliknij „Test push" lub poczekaj na alert z rynku.
+            </div>
+          ) : (
+            <ul className="max-h-64 overflow-y-auto divide-y divide-border rounded-md border border-border bg-background/40">
+              {history.slice(0, 20).map((h) => (
+                <li key={h.id} className="p-2.5 text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold">{h.title}</span>
+                    <span className="num text-[10px] text-muted-foreground">
+                      {new Date(h.ts).toLocaleTimeString("pl-PL")}
+                    </span>
+                  </div>
+                  <div className="mt-0.5 text-muted-foreground">{h.body}</div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </section>
   );
