@@ -97,9 +97,11 @@ export function useRegime(coins: Coin[]) {
       source: isManual ? "manual" : "auto",
       at: Date.now(),
     };
-    const next = [entry, ...readHistory()];
-    writeHistory(next);
-    if (prev !== null) {
+    const existing = readHistory();
+    // Dedupe: if last entry is same id within 5s (e.g. multiple useRegime instances mounting), skip.
+    const dup = existing[0] && existing[0].id === entry.id && Date.now() - existing[0].at < 5000;
+    if (!dup) writeHistory([entry, ...existing]);
+    if (prev !== null && !dup) {
       toast(`Reżim zmienił się: ${active.label}`, {
         description: `${active.pl} · ${isManual ? "ręcznie" : "auto"} · pewność ${active.confidence}%`,
       });
