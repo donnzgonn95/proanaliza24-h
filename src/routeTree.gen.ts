@@ -15,6 +15,7 @@ import { Route as SilaRouteImport } from './routes/sila'
 import { Route as SetupyRouteImport } from './routes/setupy'
 import { Route as SentymentRouteImport } from './routes/sentyment'
 import { Route as PrzeplywRouteImport } from './routes/przeplyw'
+import { Route as AsystentRouteImport } from './routes/asystent'
 import { Route as AlertyRouteImport } from './routes/alerty'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -48,6 +49,11 @@ const PrzeplywRoute = PrzeplywRouteImport.update({
   path: '/przeplyw',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AsystentRoute = AsystentRouteImport.update({
+  id: '/asystent',
+  path: '/asystent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AlertyRoute = AlertyRouteImport.update({
   id: '/alerty',
   path: '/alerty',
@@ -62,6 +68,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/alerty': typeof AlertyRoute
+  '/asystent': typeof AsystentRoute
   '/przeplyw': typeof PrzeplywRoute
   '/sentyment': typeof SentymentRoute
   '/setupy': typeof SetupyRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/alerty': typeof AlertyRoute
+  '/asystent': typeof AsystentRoute
   '/przeplyw': typeof PrzeplywRoute
   '/sentyment': typeof SentymentRoute
   '/setupy': typeof SetupyRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/alerty': typeof AlertyRoute
+  '/asystent': typeof AsystentRoute
   '/przeplyw': typeof PrzeplywRoute
   '/sentyment': typeof SentymentRoute
   '/setupy': typeof SetupyRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/alerty'
+    | '/asystent'
     | '/przeplyw'
     | '/sentyment'
     | '/setupy'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/alerty'
+    | '/asystent'
     | '/przeplyw'
     | '/sentyment'
     | '/setupy'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/alerty'
+    | '/asystent'
     | '/przeplyw'
     | '/sentyment'
     | '/setupy'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlertyRoute: typeof AlertyRoute
+  AsystentRoute: typeof AsystentRoute
   PrzeplywRoute: typeof PrzeplywRoute
   SentymentRoute: typeof SentymentRoute
   SetupyRoute: typeof SetupyRoute
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrzeplywRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/asystent': {
+      id: '/asystent'
+      path: '/asystent'
+      fullPath: '/asystent'
+      preLoaderRoute: typeof AsystentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/alerty': {
       id: '/alerty'
       path: '/alerty'
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlertyRoute: AlertyRoute,
+  AsystentRoute: AsystentRoute,
   PrzeplywRoute: PrzeplywRoute,
   SentymentRoute: SentymentRoute,
   SetupyRoute: SetupyRoute,
@@ -208,3 +229,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
