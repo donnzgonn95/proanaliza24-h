@@ -188,6 +188,21 @@ export function clearNotifHistory() {
   emitHistory();
 }
 
+export function markHistoryRead(id: string) {
+  if (typeof window === "undefined") return;
+  const list = loadHistory().map((h) => (h.id === id && !h.readAt ? { ...h, readAt: Date.now() } : h));
+  window.localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+  emitHistory();
+}
+
+export function markAllHistoryRead() {
+  if (typeof window === "undefined") return;
+  const now = Date.now();
+  const list = loadHistory().map((h) => (h.readAt ? h : { ...h, readAt: now }));
+  window.localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+  emitHistory();
+}
+
 /** Serialize history to JSON string (pretty-printed). */
 export function serializeHistory(items?: NotifHistoryItem[]): string {
   return JSON.stringify(items ?? loadHistory(), null, 2);
