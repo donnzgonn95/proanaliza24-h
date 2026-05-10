@@ -25,13 +25,25 @@ function Index() {
   const featured = ["BTC", "ETH", "SOL", "ARB"];
   const liveTickers = (liveCoins ?? []).filter((c) => featured.includes(c.symbol));
 
-  const setups = useMemo(
+  // Active regime (auto or manual override) drives downstream signal filtering.
+  const coinsForRegime = liveCoins && liveCoins.length ? liveCoins : [];
+  const { active: activeRegime } = useRegime(coinsForRegime);
+
+  const rawSetups = useMemo(
     () => (liveCoins && liveCoins.length ? generateSetups(liveCoins) : demoSetups),
     [liveCoins],
   );
-  const alerts = useMemo(
+  const rawAlerts = useMemo(
     () => (liveCoins && liveCoins.length ? generateAlerts(liveCoins) : demoAlerts),
     [liveCoins],
+  );
+  const { setups, note: regimeNote } = useMemo(
+    () => adjustSetupsForRegime(rawSetups, activeRegime.id),
+    [rawSetups, activeRegime.id],
+  );
+  const alerts = useMemo(
+    () => adjustAlertsForRegime(rawAlerts, activeRegime.id),
+    [rawAlerts, activeRegime.id],
   );
   const top = setups.slice(0, 3);
 
