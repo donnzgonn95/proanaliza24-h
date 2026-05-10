@@ -462,3 +462,20 @@ function SectionHeader({
     </div>
   );
 }
+
+function Legend({ color, label, dashed }: { color: string; label: string; dashed?: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded border border-border bg-background/40 px-1.5 py-0.5">
+      <span
+        className="inline-block h-0.5 w-3"
+        style={{
+          backgroundColor: dashed ? "transparent" : color,
+          backgroundImage: dashed
+            ? `repeating-linear-gradient(90deg, ${color} 0 3px, transparent 3px 6px)`
+            : undefined,
+        }}
+      />
+      {label}
+    </span>
+  );
+}
