@@ -50,6 +50,7 @@ export type NotifHistoryItem = {
   symbol: string;
   ts: number;
   muted?: boolean;
+  readAt?: number;
 };
 
 function read(): NotifSettings {
