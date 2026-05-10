@@ -29,6 +29,7 @@ const nav = [
   { to: "/sila", label: "Siła", icon: BarChart3 },
   { to: "/setupy", label: "Setupy", icon: Target },
   { to: "/alerty", label: "Alerty", icon: Bell },
+  { to: "/historia-alertow", label: "Historia", icon: Bell },
   { to: "/likwidacja", label: "Płynność", icon: Droplets },
   { to: "/asystent", label: "Asystent", icon: Bot },
   { to: "/slownik", label: "Słownik", icon: BookOpen },
