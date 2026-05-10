@@ -17,18 +17,18 @@ const nav = [
 export function Header() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/90 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <Link to="/" className="flex items-center gap-2.5">
+        <Link to="/" className="flex items-center gap-3">
           <img
             src={eljotLogo}
             alt="Logo eL Jot"
-            width={32}
-            height={32}
-            className="h-9 w-9 rounded-md bg-primary/10 p-0.5"
+            width={56}
+            height={56}
+            className="h-14 w-14 rounded-full"
           />
           <div className="leading-tight">
-            <div className="text-sm font-bold">Kukomy co w rynkach piszczy</div>
+            <div className="text-base font-bold md:text-lg">Kukomy co w rynkach piszczy</div>
             <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
               DEMO · v0.1 · szczegółowa analiza struktury rynku by eL Jot
             </div>
