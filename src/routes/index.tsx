@@ -25,6 +25,9 @@ function Index() {
   };
 
   const top = setups.slice(0, 3);
+  const { data: liveCoins, isError, isLoading } = useLiveCoins();
+  const featured = ["BTC", "ETH", "SOL", "ARB"];
+  const liveTickers = (liveCoins ?? []).filter((c) => featured.includes(c.symbol));
 
   return (
     <div className="space-y-6">
