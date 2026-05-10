@@ -86,8 +86,19 @@ function Index() {
 
       {/* Top setupy */}
       <section className="rounded-xl border border-border bg-card p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Top 3 setupy dziś</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-bold">Top 3 setupy dziś</h2>
+            <span className={cn(
+              "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+              regimeNote.tone === "bull" && "bg-bull/20 text-bull",
+              regimeNote.tone === "bear" && "bg-bear/20 text-bear",
+              regimeNote.tone === "warning" && "bg-warning/20 text-warning",
+              regimeNote.tone === "neutral" && "bg-muted text-muted-foreground",
+            )} title="Setupy są filtrowane wg aktualnego reżimu rynku">
+              {regimeNote.tag}
+            </span>
+          </div>
           <Link to="/setupy" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
             Wszystkie <ArrowRight className="h-3 w-3" />
           </Link>
