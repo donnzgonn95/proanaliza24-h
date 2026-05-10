@@ -453,3 +453,79 @@ function NotificationsSection() {
     </section>
   );
 }
+
+/* ---------- AI Limits section ---------- */
+import { Activity, Trash2 as Trash } from "lucide-react";
+import { clearUsage, setLimits, useAiUsage, DEFAULT_LIMITS } from "@/lib/ai-usage";
+
+function AiLimitsSection() {
+  const { stats, limits } = useAiUsage();
+
+  return (
+    <section className="space-y-3">
+      <div>
+        <h2 className="text-xs uppercase tracking-widest text-muted-foreground">Limity AI i koszty</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Ogranicz zapytania asystenta i raportów. Koszty są szacunkowe (na bazie tokenów × cennik modelu).
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Stat label="Dziś" value={`${stats.countDay}`} sub={`$${stats.costDayUsd.toFixed(4)}`} />
+          <Stat label="7 dni" value={`${stats.countWeek}`} sub={`$${stats.costWeekUsd.toFixed(4)}`} />
+          <Stat label="Budżet dzienny" value={`$${limits.dailyBudgetUsd.toFixed(2)}`} sub={`${stats.budgetPct.toFixed(0)}% wykorzystane`} />
+          <Stat label="Status" value={stats.budgetExceeded ? "PRZEKROCZONY" : "OK"} sub={stats.budgetExceeded ? "ostrzeżenie" : "w normie"} tone={stats.budgetExceeded ? "bear" : "bull"} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 border-t border-border pt-4">
+          <NumField label="Na minutę" value={limits.perMinute} onChange={(v) => setLimits({ perMinute: v })} />
+          <NumField label="Na godzinę" value={limits.perHour} onChange={(v) => setLimits({ perHour: v })} />
+          <NumField label="Na dzień" value={limits.perDay} onChange={(v) => setLimits({ perDay: v })} />
+          <NumField label="Budżet $/dzień" value={limits.dailyBudgetUsd} onChange={(v) => setLimits({ dailyBudgetUsd: v })} step={0.1} />
+        </div>
+
+        <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+          <button
+            onClick={() => setLimits(DEFAULT_LIMITS)}
+            className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-secondary"
+          >
+            <Activity className="mr-1 inline h-3 w-3" /> Przywróć domyślne
+          </button>
+          <button
+            onClick={() => { if (confirm("Wyczyścić historię zużycia?")) clearUsage(); }}
+            className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-secondary"
+          >
+            <Trash className="mr-1 inline h-3 w-3" /> Wyczyść licznik
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Stat({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: "bull" | "bear" }) {
+  return (
+    <div className="rounded-lg border border-border bg-background/40 p-3">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className={cn("mt-1 text-lg font-bold num", tone === "bear" && "text-bear", tone === "bull" && "text-bull")}>{value}</div>
+      <div className="text-xs text-muted-foreground num">{sub}</div>
+    </div>
+  );
+}
+
+function NumField({ label, value, onChange, step = 1 }: { label: string; value: number; onChange: (v: number) => void; step?: number }) {
+  return (
+    <label className="flex flex-col gap-1 text-xs">
+      <span className="text-muted-foreground">{label}</span>
+      <input
+        type="number"
+        value={value}
+        step={step}
+        min={0}
+        onChange={(e) => onChange(Number(e.target.value) || 0)}
+        className="rounded-md border border-border bg-background px-2 py-1.5 text-sm num"
+      />
+    </label>
+  );
+}
