@@ -297,8 +297,20 @@ export function useAlertNotifications() {
     const seen = loadSeen();
     const firstRun = !window.localStorage.getItem(SEEN_KEY);
 
+    let watchlist: Set<string> | null = null;
+    if (settings.watchlistOnly) {
+      try {
+        const raw = window.localStorage.getItem("watchlist:v1");
+        const arr = raw ? (JSON.parse(raw) as string[]) : [];
+        watchlist = new Set(arr.map((s) => String(s).toUpperCase()));
+      } catch {
+        watchlist = new Set();
+      }
+    }
+
     for (const a of alerts) {
       if (!settings.levels[a.level]) continue;
+      if (watchlist && !watchlist.has(a.symbol.toUpperCase())) continue;
       const k = alertKey(a, settings.dedupMinutes);
       if (seen.has(k)) continue;
       seen.add(k);
