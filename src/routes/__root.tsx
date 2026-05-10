@@ -72,11 +72,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "CryptoPuls — monitor sentymentu i setupów krypto" },
+      { name: "description", content: "Polski monitor sentymentu rynku krypto, przepływu kapitału BTC→ETH→SOL→alty, rankingu siły, setupów i alertów." },
+      { name: "author", content: "CryptoPuls" },
+      { property: "og:title", content: "CryptoPuls — monitor krypto po polsku" },
+      { property: "og:description", content: "Sentyment, rotacja kapitału, setupy Long/Short i alerty — wszystko po polsku." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
@@ -108,12 +108,19 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { Header } from "@/components/Header";
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="mx-auto max-w-6xl px-4 py-6 pb-24">
+          <Outlet />
+        </main>
+      </div>
     </QueryClientProvider>
   );
 }
