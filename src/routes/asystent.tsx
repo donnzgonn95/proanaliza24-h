@@ -1,44 +1,66 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Bot, Download, FileText, Loader2, RefreshCw, Send, Sparkles } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Bot, Download, FileText, Loader2, RefreshCw, Send, Sparkles, Activity } from "lucide-react";
 import { useLiveCoins } from "@/lib/binance";
 import { generateAlerts, generateSetups } from "@/lib/signals";
 import { sentiment, alerts as demoAlerts, setups as demoSetups, coins as demoCoins } from "@/lib/demo-data";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ModelPicker } from "@/components/ModelPicker";
+import { ConversationsSidebar } from "@/components/ConversationsSidebar";
+import {
+  DEFAULT_CHAT_MODEL,
+  DEFAULT_REPORT_MODEL,
+} from "@/lib/ai-models";
+import {
+  checkLimit,
+  getStoredModel,
+  recordUsage,
+  setStoredModel,
+  useAiUsage,
+} from "@/lib/ai-usage";
+import {
+  deriveTitle,
+  getConversation,
+  newConversationId,
+  upsertConversation,
+  type ChatMsg,
+  type Conversation,
+} from "@/lib/chat-history";
 
 export const Route = createFileRoute("/asystent")({
   head: () => ({
     meta: [
       { title: "Asystent AI — analiza rynku, alerty, raport" },
-      { name: "description", content: "Analiza LLM danych rynkowych, podsumowanie alertów na żywo, chat-asystent rynkowy i generator raportu inwestorskiego." },
+      { name: "description", content: "Analiza LLM, podsumowanie alertów, chat-asystent rynkowy, raport inwestorski. Wybór modelu, historia rozmów, limity i koszty." },
     ],
   }),
   component: AsystentPage,
 });
 
 const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/market-ai`;
-
 type Mode = "analyze" | "summary" | "report";
 
-async function callAI(mode: Mode, payload: unknown): Promise<string> {
+async function callAI(mode: Mode, payload: unknown, model: string): Promise<{ content: string; usage?: any }> {
+  const gate = checkLimit();
+  if (!gate.ok) throw new Error(`${gate.reason}. Spróbuj za ~${gate.retryInSec}s.`);
+
   const res = await fetch(FN_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ mode, payload }),
+    body: JSON.stringify({ mode, payload, model }),
   });
   if (res.status === 429) throw new Error("Przekroczony limit zapytań — spróbuj za chwilę.");
   if (res.status === 402) throw new Error("Brak kredytów AI — doładuj w Workspace → Usage.");
   if (!res.ok) throw new Error("Błąd bramki AI");
-  const data = (await res.json()) as { content?: string; error?: string };
+  const data = (await res.json()) as { content?: string; error?: string; usage?: any };
   if (data.error) throw new Error(data.error);
-  return data.content ?? "";
+  return { content: data.content ?? "", usage: data.usage };
 }
 
 function AsystentPage() {
@@ -59,6 +81,8 @@ function AsystentPage() {
         </p>
       </header>
 
+      <UsageBar />
+
       <div className="grid gap-6 lg:grid-cols-2">
         <AnalyzeCard coins={coins} sentiment={sentiment} />
         <SummaryCard alerts={alerts} />
@@ -66,8 +90,40 @@ function AsystentPage() {
 
       <ReportCard coins={coins} sentiment={sentiment} setups={setups} alerts={alerts} />
 
-      <ChatCard contextHint={{ topSetups: setups.slice(0, 3), sentiment }} />
+      <ChatSection contextHint={{ topSetups: setups.slice(0, 3), sentiment }} />
     </div>
+  );
+}
+
+/* ---------- Usage / limits bar ---------- */
+function UsageBar() {
+  const { stats, limits } = useAiUsage();
+  const pct = Math.min(100, stats.budgetPct);
+  const warn = pct >= 80;
+  return (
+    <section className="rounded-xl border border-border bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          <Activity className="h-3.5 w-3.5" /> Zużycie AI
+        </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+          <span><span className="text-muted-foreground">Dziś:</span> <span className="num font-semibold">{stats.countDay}</span> zapytań · <span className="num">${stats.costDayUsd.toFixed(4)}</span></span>
+          <span><span className="text-muted-foreground">7 dni:</span> <span className="num font-semibold">{stats.countWeek}</span> zapytań · <span className="num">${stats.costWeekUsd.toFixed(4)}</span></span>
+          <span className="text-muted-foreground">Limity: {limits.perMinute}/min · {limits.perHour}/h · {limits.perDay}/dzień</span>
+        </div>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-background">
+        <div
+          className={cn("h-full transition-all", warn ? "bg-warning" : "bg-bull", stats.budgetExceeded && "bg-bear")}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="mt-1 text-[10px] text-muted-foreground">
+        Budżet dnia: ${stats.costDayUsd.toFixed(4)} / ${limits.dailyBudgetUsd.toFixed(2)} ({pct.toFixed(0)}%)
+        {stats.budgetExceeded && <span className="ml-2 font-semibold text-bear">PRZEKROCZONY</span>}
+        <span className="ml-2">· zmień w Ustawieniach → Limity AI</span>
+      </div>
+    </section>
   );
 }
 
@@ -75,13 +131,15 @@ function AsystentPage() {
 function AnalyzeCard({ coins, sentiment }: { coins: any[]; sentiment: any }) {
   const [out, setOut] = useState("");
   const [loading, setLoading] = useState(false);
+  const [model, setModel] = useState(() => getStoredModel("analyze", DEFAULT_CHAT_MODEL));
 
   const run = async () => {
     setLoading(true);
     setOut("");
     try {
-      const content = await callAI("analyze", { coins, sentiment });
+      const { content, usage } = await callAI("analyze", { coins, sentiment }, model);
       setOut(content);
+      recordUsage({ mode: "analyze", model, promptTokens: usage?.prompt_tokens, completionTokens: usage?.completion_tokens });
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -91,7 +149,7 @@ function AnalyzeCard({ coins, sentiment }: { coins: any[]; sentiment: any }) {
 
   return (
     <section className="rounded-xl border border-border bg-card p-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-lg font-bold">
           <FileText className="h-4 w-4 text-primary" /> Analiza rynku (LLM)
         </h2>
@@ -103,6 +161,9 @@ function AnalyzeCard({ coins, sentiment }: { coins: any[]; sentiment: any }) {
           {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
           Generuj
         </button>
+      </div>
+      <div className="mt-2">
+        <ModelPicker value={model} onChange={(m) => { setModel(m); setStoredModel("analyze", m); }} />
       </div>
       <p className="mt-1 text-xs text-muted-foreground">
         Model przeanalizuje aktualne ceny, momentum, RSI i siłę relatywną {coins.length} aktywów.
@@ -116,13 +177,15 @@ function AnalyzeCard({ coins, sentiment }: { coins: any[]; sentiment: any }) {
 function SummaryCard({ alerts }: { alerts: any[] }) {
   const [out, setOut] = useState("");
   const [loading, setLoading] = useState(false);
+  const [model, setModel] = useState(() => getStoredModel("summary", DEFAULT_CHAT_MODEL));
 
   const run = async () => {
     setLoading(true);
     setOut("");
     try {
-      const content = await callAI("summary", { alerts });
+      const { content, usage } = await callAI("summary", { alerts }, model);
       setOut(content);
+      recordUsage({ mode: "summary", model, promptTokens: usage?.prompt_tokens, completionTokens: usage?.completion_tokens });
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -132,7 +195,7 @@ function SummaryCard({ alerts }: { alerts: any[] }) {
 
   return (
     <section className="rounded-xl border border-border bg-card p-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="flex items-center gap-2 text-lg font-bold">
           <Sparkles className="h-4 w-4 text-warning" /> Podsumowanie alertów na żywo
         </h2>
@@ -145,6 +208,9 @@ function SummaryCard({ alerts }: { alerts: any[] }) {
           Podsumuj
         </button>
       </div>
+      <div className="mt-2">
+        <ModelPicker value={model} onChange={(m) => { setModel(m); setStoredModel("summary", m); }} />
+      </div>
       <p className="mt-1 text-xs text-muted-foreground">{alerts.length} aktywnych alertów do podsumowania.</p>
       <MarkdownBox content={out} placeholder="Kliknij „Podsumuj”, aby otrzymać zwięzły przegląd alertów." />
     </section>
@@ -155,6 +221,7 @@ function SummaryCard({ alerts }: { alerts: any[] }) {
 function ReportCard(props: { coins: any[]; sentiment: any; setups: any[]; alerts: any[] }) {
   const [out, setOut] = useState("");
   const [loading, setLoading] = useState(false);
+  const [model, setModel] = useState(() => getStoredModel("report", DEFAULT_REPORT_MODEL));
 
   const run = async () => {
     setLoading(true);
@@ -167,8 +234,9 @@ function ReportCard(props: { coins: any[]; sentiment: any; setups: any[]; alerts
         setups: props.setups,
         alerts: props.alerts.slice(0, 10),
       };
-      const content = await callAI("report", payload);
+      const { content, usage } = await callAI("report", payload, model);
       setOut(content);
+      recordUsage({ mode: "report", model, promptTokens: usage?.prompt_tokens, completionTokens: usage?.completion_tokens });
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -192,7 +260,8 @@ function ReportCard(props: { coins: any[]; sentiment: any; setups: any[]; alerts
         <h2 className="flex items-center gap-2 text-lg font-bold">
           <FileText className="h-4 w-4 text-bull" /> Raport inwestorski
         </h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <ModelPicker value={model} onChange={(m) => { setModel(m); setStoredModel("report", m); }} label="Model raportu" />
           <button
             onClick={run}
             disabled={loading}
@@ -218,24 +287,68 @@ function ReportCard(props: { coins: any[]; sentiment: any; setups: any[]; alerts
   );
 }
 
-/* ---------- Chat (streaming) ---------- */
-type ChatMsg = { role: "user" | "assistant"; content: string };
-
-function ChatCard({ contextHint }: { contextHint: unknown }) {
-  const [messages, setMessages] = useState<ChatMsg[]>([
+/* ---------- Chat with history ---------- */
+function ChatSection({ contextHint }: { contextHint: unknown }) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [model, setModel] = useState(() => getStoredModel("chat", DEFAULT_CHAT_MODEL));
+  const initial: ChatMsg[] = [
     {
       role: "assistant",
       content:
-        "Cześć! Jestem **eL Jot**, asystent rynkowy. Zapytaj o sytuację na BTC/ETH, sens rotacji do altów, sygnały RSI, znaczenie alertów — co tylko chcesz. Pamiętaj: to edukacja, nie porada inwestycyjna.",
+        "Cześć! Jestem **eL Jot**, asystent rynkowy. Zapytaj o sytuację na BTC/ETH, sens rotacji do altów, sygnały RSI, znaczenie alertów. Pamiętaj: to edukacja, nie porada inwestycyjna.",
     },
-  ]);
+  ];
+  const [messages, setMessages] = useState<ChatMsg[]>(initial);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Load conversation when activeId changes from sidebar.
+  useEffect(() => {
+    if (!activeId) return;
+    const conv = getConversation(activeId);
+    if (conv) {
+      setMessages(conv.messages);
+      setModel(conv.model);
+    }
+  }, [activeId]);
+
+  const newChat = () => {
+    setActiveId(null);
+    setMessages(initial);
+    setInput("");
+  };
+
+  const persist = (msgs: ChatMsg[]) => {
+    let id = activeId;
+    const now = Date.now();
+    if (!id) {
+      id = newConversationId();
+      setActiveId(id);
+    }
+    const conv: Conversation = {
+      id,
+      title: deriveTitle(msgs),
+      createdAt: now,
+      updatedAt: now,
+      model,
+      messages: msgs,
+    };
+    const existing = getConversation(id);
+    if (existing) conv.createdAt = existing.createdAt;
+    upsertConversation(conv);
+  };
+
   const send = async () => {
     const text = input.trim();
     if (!text || loading) return;
+
+    const gate = checkLimit();
+    if (!gate.ok) {
+      toast.error(`${gate.reason}. Spróbuj za ~${gate.retryInSec}s.`);
+      return;
+    }
+
     const next: ChatMsg[] = [...messages, { role: "user", content: text }];
     setMessages(next);
     setInput("");
@@ -250,6 +363,7 @@ function ChatCard({ contextHint }: { contextHint: unknown }) {
         },
         body: JSON.stringify({
           mode: "chat",
+          model,
           messages: [
             { role: "user", content: `Kontekst rynkowy (JSON):\n${JSON.stringify(contextHint)}` },
             ...next,
@@ -265,6 +379,7 @@ function ChatCard({ contextHint }: { contextHint: unknown }) {
       let buffer = "";
       let assistantSoFar = "";
       let started = false;
+      let lastUsage: any = null;
 
       const upsert = (delta: string) => {
         assistantSoFar += delta;
@@ -294,20 +409,27 @@ function ChatCard({ contextHint }: { contextHint: unknown }) {
           if (!line || line.startsWith(":")) continue;
           if (!line.startsWith("data: ")) continue;
           const data = line.slice(6).trim();
-          if (data === "[DONE]") {
-            done = true;
-            break;
-          }
+          if (data === "[DONE]") { done = true; break; }
           try {
             const parsed = JSON.parse(data);
             const c = parsed.choices?.[0]?.delta?.content;
             if (c) upsert(c);
+            if (parsed.usage) lastUsage = parsed.usage;
           } catch {
             buffer = line + "\n" + buffer;
             break;
           }
         }
       }
+
+      const finalMsgs: ChatMsg[] = [...next, { role: "assistant", content: assistantSoFar }];
+      persist(finalMsgs);
+      recordUsage({
+        mode: "chat",
+        model,
+        promptTokens: lastUsage?.prompt_tokens,
+        completionTokens: lastUsage?.completion_tokens,
+      });
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -316,65 +438,73 @@ function ChatCard({ contextHint }: { contextHint: unknown }) {
   };
 
   return (
-    <section className="rounded-xl border border-border bg-card p-5">
-      <h2 className="flex items-center gap-2 text-lg font-bold">
-        <Bot className="h-4 w-4 text-primary" /> Chat-asystent rynkowy
-      </h2>
-      <div
-        ref={scrollRef}
-        className="mt-3 max-h-[420px] space-y-3 overflow-y-auto rounded-lg border border-border bg-background/40 p-3"
-      >
-        {messages.map((m, i) => (
-          <div
-            key={i}
-            className={cn(
-              "rounded-lg px-3 py-2 text-sm",
-              m.role === "user"
-                ? "ml-auto max-w-[85%] bg-primary/15 text-foreground"
-                : "mr-auto max-w-[90%] bg-secondary text-foreground",
-            )}
-          >
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                p: ({ children }) => <p className="leading-relaxed">{children}</p>,
-                ul: ({ children }) => <ul className="ml-4 list-disc space-y-0.5">{children}</ul>,
-                ol: ({ children }) => <ol className="ml-4 list-decimal space-y-0.5">{children}</ol>,
-                code: ({ children }) => (
-                  <code className="rounded bg-muted px-1 py-0.5 text-xs">{children}</code>
-                ),
-              }}
-            >
-              {m.content}
-            </ReactMarkdown>
-          </div>
-        ))}
-        {loading && (
-          <div className="mr-auto inline-flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm text-muted-foreground">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" /> piszę…
-          </div>
-        )}
-      </div>
-      <div className="mt-3 flex gap-2">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              send();
-            }
-          }}
-          placeholder="Zapytaj o rynek, alerty, setupy…"
-          className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-        />
-        <button
-          onClick={send}
-          disabled={loading || !input.trim()}
-          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+    <section className="grid gap-4 lg:grid-cols-[260px_1fr]">
+      <ConversationsSidebar activeId={activeId} onSelect={setActiveId} onNew={newChat} />
+
+      <div className="rounded-xl border border-border bg-card p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-lg font-bold">
+            <Bot className="h-4 w-4 text-primary" /> Chat-asystent rynkowy
+          </h2>
+          <ModelPicker value={model} onChange={(m) => { setModel(m); setStoredModel("chat", m); }} label="Model chatu" />
+        </div>
+
+        <div
+          ref={scrollRef}
+          className="mt-3 max-h-[420px] space-y-3 overflow-y-auto rounded-lg border border-border bg-background/40 p-3"
         >
-          <Send className="h-4 w-4" /> Wyślij
-        </button>
+          {messages.map((m, i) => (
+            <div
+              key={i}
+              className={cn(
+                "rounded-lg px-3 py-2 text-sm",
+                m.role === "user"
+                  ? "ml-auto max-w-[85%] bg-primary/15 text-foreground"
+                  : "mr-auto max-w-[90%] bg-secondary text-foreground",
+              )}
+            >
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  p: ({ children }) => <p className="leading-relaxed">{children}</p>,
+                  ul: ({ children }) => <ul className="ml-4 list-disc space-y-0.5">{children}</ul>,
+                  ol: ({ children }) => <ol className="ml-4 list-decimal space-y-0.5">{children}</ol>,
+                  code: ({ children }) => (
+                    <code className="rounded bg-muted px-1 py-0.5 text-xs">{children}</code>
+                  ),
+                }}
+              >
+                {m.content}
+              </ReactMarkdown>
+            </div>
+          ))}
+          {loading && (
+            <div className="mr-auto inline-flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> piszę…
+            </div>
+          )}
+        </div>
+        <div className="mt-3 flex gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send();
+              }
+            }}
+            placeholder="Zapytaj o rynek, alerty, setupy…"
+            className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+          <button
+            onClick={send}
+            disabled={loading || !input.trim()}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            <Send className="h-4 w-4" /> Wyślij
+          </button>
+        </div>
       </div>
     </section>
   );
