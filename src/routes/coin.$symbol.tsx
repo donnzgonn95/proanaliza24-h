@@ -192,6 +192,8 @@ function CoinPage() {
           Dane: CoinGecko OHLC + market_chart. Wskaźniki SMA/EMA/RSI obliczane lokalnie z zamknięć świec — nie generują dodatkowych zapytań do API.
         </p>
       </section>
+
+      <AlertTriggersPanel symbol={sym} currentPrice={coin?.price} />
     </div>
   );
 }
