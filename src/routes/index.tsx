@@ -51,6 +51,30 @@ function Index() {
         </ul>
       </section>
 
+      {/* Live tickers — Binance */}
+      <section className="rounded-xl border border-border bg-card p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
+            <Radio className={cn("h-3.5 w-3.5", !isError && liveCoins && "animate-pulse text-bull")} />
+            {isError ? "Brak połączenia · dane DEMO" : isLoading ? "Łączę z Binance…" : "Binance · ceny na żywo"}
+          </div>
+          <Link to="/sila" className="text-xs text-primary hover:underline">Pełny ranking →</Link>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {(liveTickers.length ? liveTickers : featured.map((s) => ({ symbol: s, price: 0, change24h: 0 }))).map((c) => (
+            <div key={c.symbol} className="rounded-lg border border-border bg-background/40 p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold">{c.symbol}</span>
+                {c.price > 0 && <ChangePill value={c.change24h} />}
+              </div>
+              <div className="num mt-1 text-base font-semibold">
+                {c.price > 0 ? formatMoney(c.price) : "—"}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Quick stats */}
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard label="Fear & Greed" value={`${sentiment.fearGreedIndex}`} sub={sentiment.fearGreedLabel} accent="bull" />
