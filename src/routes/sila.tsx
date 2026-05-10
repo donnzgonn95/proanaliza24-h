@@ -16,15 +16,28 @@ export const Route = createFileRoute("/sila")({
 });
 
 function SilaPage() {
+  const { data: liveCoins, isLoading, isError, dataUpdatedAt } = useLiveCoins();
+  const coins = liveCoins ?? demoCoins;
   const ranked = [...coins].sort((a, b) => b.strength - a.strength);
+  const updated = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString("pl-PL") : "—";
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-bold">Ranking siły</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Wynik 0–100 łączący zmianę 7D, wolumen i RSI. Im wyżej, tym silniejszy trend.
-        </p>
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Ranking siły</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Wynik 0–100 łączący zmianę 24h, wolumen i RSI. Im wyżej, tym silniejszy trend.
+          </p>
+        </div>
+        <div className={cn(
+          "flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+          isError ? "border-bear/40 bg-bear/10 text-bear" : liveCoins ? "border-bull/40 bg-bull/10 text-bull" : "border-border bg-muted text-muted-foreground",
+        )}>
+          <Radio className={cn("h-3 w-3", liveCoins && !isError && "animate-pulse")} />
+          {isError ? "Demo" : isLoading ? "Łączę…" : "Binance LIVE"}
+          {liveCoins && !isError && <span className="num font-normal opacity-70">· {updated}</span>}
+        </div>
       </header>
 
       <section className="overflow-hidden rounded-xl border border-border bg-card">
