@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Activity, ArrowLeftRight, BarChart3, Bell, BookOpen, Settings, Sparkles, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
+import eljotLogo from "@/assets/eljot-logo.png";
 
 const nav = [
   { to: "/", label: "Panel", icon: Sparkles },
