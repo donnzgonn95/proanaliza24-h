@@ -8,7 +8,18 @@ const corsHeaders = {
 };
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-3-flash-preview";
+const DEFAULT_MODEL = "google/gemini-2.5-flash";
+const ALLOWED_MODELS = new Set([
+  "google/gemini-2.5-flash-lite",
+  "google/gemini-2.5-flash",
+  "google/gemini-2.5-pro",
+  "google/gemini-3-flash-preview",
+  "google/gemini-3.1-pro-preview",
+  "openai/gpt-5-nano",
+  "openai/gpt-5-mini",
+  "openai/gpt-5",
+  "openai/gpt-5.2",
+]);
 
 type Mode = "analyze" | "summary" | "chat" | "report";
 
@@ -27,19 +38,18 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { mode, payload, messages } = (await req.json()) as {
+    const { mode, payload, messages, model } = (await req.json()) as {
       mode: Mode;
       payload?: unknown;
       messages?: { role: "user" | "assistant"; content: string }[];
+      model?: string;
     };
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) {
-      return json({ error: "LOVABLE_API_KEY not configured" }, 500);
-    }
-    if (!mode || !SYSTEM_PROMPTS[mode]) {
-      return json({ error: "Invalid mode" }, 400);
-    }
+    if (!apiKey) return json({ error: "LOVABLE_API_KEY not configured" }, 500);
+    if (!mode || !SYSTEM_PROMPTS[mode]) return json({ error: "Invalid mode" }, 400);
+
+    const useModel = model && ALLOWED_MODELS.has(model) ? model : DEFAULT_MODEL;
 
     const system = SYSTEM_PROMPTS[mode];
     const userContent =
@@ -62,17 +72,19 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ model: MODEL, messages: reqMessages, stream }),
+      body: JSON.stringify({
+        model: useModel,
+        messages: reqMessages,
+        stream,
+        ...(stream ? { stream_options: { include_usage: true } } : {}),
+      }),
     });
 
     if (!upstream.ok) {
       if (upstream.status === 429)
         return json({ error: "Przekroczony limit zapytań, spróbuj za chwilę." }, 429);
       if (upstream.status === 402)
-        return json(
-          { error: "Brak kredytów AI — doładuj w Settings → Workspace → Usage." },
-          402,
-        );
+        return json({ error: "Brak kredytów AI — doładuj w Settings → Workspace → Usage." }, 402);
       const t = await upstream.text();
       console.error("Gateway error:", upstream.status, t);
       return json({ error: "Błąd bramki AI" }, 500);
@@ -80,13 +92,18 @@ Deno.serve(async (req) => {
 
     if (stream) {
       return new Response(upstream.body, {
-        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "x-ai-model": useModel,
+        },
       });
     }
 
     const data = await upstream.json();
     const content = data.choices?.[0]?.message?.content ?? "";
-    return json({ content });
+    const usage = data.usage ?? null;
+    return json({ content, usage, model: useModel });
   } catch (e) {
     console.error("market-ai error:", e);
     return json({ error: e instanceof Error ? e.message : "Unknown error" }, 500);
