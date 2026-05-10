@@ -17,6 +17,7 @@ export const Route = createFileRoute("/sila")({
 });
 
 function SilaPage() {
+  const source = useDataSource();
   const { data: liveCoins, isLoading, isError, dataUpdatedAt } = useLiveCoins();
   const coins = liveCoins ?? demoCoins;
   const ranked = [...coins].sort((a, b) => b.strength - a.strength);
@@ -28,16 +29,21 @@ function SilaPage() {
         <div>
           <h1 className="text-3xl font-bold">Ranking siły</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Wynik 0–100 łączący zmianę 24h, wolumen i RSI. Im wyżej, tym silniejszy trend.
+            Wynik 0–100: 50% trend 7D + 25% momentum 24h + 25% wolumen względny.
           </p>
         </div>
-        <div className={cn(
-          "flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
-          isError ? "border-bear/40 bg-bear/10 text-bear" : liveCoins ? "border-bull/40 bg-bull/10 text-bull" : "border-border bg-muted text-muted-foreground",
-        )}>
-          <Radio className={cn("h-3 w-3", liveCoins && !isError && "animate-pulse")} />
-          {isError ? "Demo" : isLoading ? "Łączę…" : "Binance LIVE"}
-          {liveCoins && !isError && <span className="num font-normal opacity-70">· {updated}</span>}
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <div className={cn(
+            "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+            isError ? "border-bear/40 bg-bear/10 text-bear" : liveCoins ? "border-bull/40 bg-bull/10 text-bull" : "border-border bg-muted text-muted-foreground",
+          )}>
+            <Radio className={cn("h-3 w-3", liveCoins && !isError && "animate-pulse")} />
+            {isError ? "Demo (błąd)" : isLoading ? "Łączę…" : `${DATA_SOURCE_LABELS[source]} LIVE`}
+            {liveCoins && !isError && <span className="num font-normal opacity-70">· {updated}</span>}
+          </div>
+          <Link to="/ustawienia" className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary">
+            <Settings className="h-3 w-3" /> Zmień źródło
+          </Link>
         </div>
       </header>
 
