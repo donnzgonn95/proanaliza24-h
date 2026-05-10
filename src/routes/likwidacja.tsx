@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useLiveCoins } from "@/lib/binance";
 import { coins as demoCoins } from "@/lib/demo-data";
+import { useTopCoins, useCoinOHLC } from "@/lib/top-coins";
+import { CandlestickChart, type ChartZone } from "@/components/CandlestickChart";
 import {
   buildHeatmap,
   buildVolumeClusters,
@@ -13,6 +15,7 @@ import { formatMoney } from "@/components/StatPill";
 import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
+  CandlestickChart as CandleIcon,
   Droplets,
   Flame,
   Layers,
