@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { simpleAdvice, sentiment, setups as demoSetups, alerts as demoAlerts } from "@/lib/demo-data";
+import { sentiment, setups as demoSetups, alerts as demoAlerts } from "@/lib/demo-data";
 import { useLiveCoins } from "@/lib/binance";
 import { generateSetups, generateAlerts } from "@/lib/signals";
 import { useMemo } from "react";
 import { ChangePill, formatMoney } from "@/components/StatPill";
-import { ArrowRight, CheckCircle2, Flame, Radio, ShieldAlert } from "lucide-react";
+import { MarketRegimeBanner } from "@/components/MarketRegimeBanner";
+import { ArrowRight, Radio, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -18,14 +19,6 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const accent = simpleAdvice.color;
-  const accentClass: Record<string, string> = {
-    bull: "from-bull/30 to-bull/5 border-bull/40",
-    bear: "from-bear/30 to-bear/5 border-bear/40",
-    neutral: "from-muted to-muted/20 border-border",
-    warning: "from-warning/30 to-warning/5 border-warning/40",
-  };
-
   const { data: liveCoins, isError, isLoading } = useLiveCoins();
   const featured = ["BTC", "ETH", "SOL", "ARB"];
   const liveTickers = (liveCoins ?? []).filter((c) => featured.includes(c.symbol));
@@ -42,25 +35,8 @@ function Index() {
 
   return (
     <div className="space-y-6">
-      {/* Hero — tryb prosty */}
-      <section className={cn("rounded-2xl border bg-gradient-to-br p-6 md:p-8", accentClass[accent])}>
-        <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
-          <Flame className="h-3.5 w-3.5" /> Tryb prosty · Co robić teraz?
-        </div>
-        <h1 className="mt-3 text-2xl font-bold leading-tight md:text-4xl">{simpleAdvice.headline}</h1>
-        <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-background/60 px-4 py-1.5 text-sm font-semibold backdrop-blur">
-          <span className={cn("inline-block h-2 w-2 rounded-full", accent === "bull" ? "bg-bull" : accent === "bear" ? "bg-bear" : "bg-warning")} />
-          {simpleAdvice.action}
-        </div>
-        <ul className="mt-5 space-y-2">
-          {simpleAdvice.bullets.map((b) => (
-            <li key={b} className="flex items-start gap-2 text-sm text-foreground/90">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-              <span>{b}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {/* Market Regime Engine — auto-detected market phase */}
+      <MarketRegimeBanner coins={liveCoins ?? undefined} />
 
       {/* Live tickers — Binance */}
       <section className="rounded-xl border border-border bg-card p-4">
