@@ -63,6 +63,7 @@ function read(): NotifSettings {
       levels: { ...DEFAULTS.levels, ...(p.levels ?? {}) },
       quietHours: { ...DEFAULTS.quietHours, ...(p.quietHours ?? {}) },
       dedupMinutes: typeof p.dedupMinutes === "number" ? p.dedupMinutes : DEFAULTS.dedupMinutes,
+      watchlistOnly: !!p.watchlistOnly,
     };
   } catch {
     return DEFAULTS;
