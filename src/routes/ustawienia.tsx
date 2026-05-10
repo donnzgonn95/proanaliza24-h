@@ -112,6 +112,8 @@ function SettingsPage() {
 
       <SourceTest />
 
+      <AiLimitsSection />
+
       <section className="rounded-xl border border-border bg-card/60 p-5 text-sm">
         <h3 className="font-semibold">Wskazówka</h3>
         <p className="mt-2 text-muted-foreground">
