@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { coins as demoCoins } from "@/lib/demo-data";
 import { useLiveCoins } from "@/lib/binance";
+import { useDataSource, DATA_SOURCE_LABELS } from "@/lib/data-source";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { cn } from "@/lib/utils";
-import { Radio } from "lucide-react";
+import { Radio, Settings } from "lucide-react";
 
 export const Route = createFileRoute("/sila")({
   head: () => ({
