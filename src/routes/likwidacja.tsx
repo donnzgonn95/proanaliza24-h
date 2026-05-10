@@ -65,6 +65,37 @@ function LiquidityPage() {
   const shortLiq = heatmap.filter((c) => c.side === "short").reduce((s, c) => s + c.notional, 0);
   const maxClusterVol = Math.max(...clusters.map((c) => c.volume));
 
+  // Resolve CoinGecko id from top100 to fetch OHLC for the candlestick view.
+  const { data: top } = useTopCoins();
+  const cgId = top?.find((c) => c.symbol === coin.symbol)?.id;
+  const [days, setDays] = useState<number>(7);
+  const { data: candles, isLoading: loadingCandles, isError: candlesError } = useCoinOHLC(cgId, days);
+
+  // Build price-line zones from microstructure data.
+  const zones = useMemo<ChartZone[]>(() => {
+    const out: ChartZone[] = [];
+    const heat = [...heatmap].sort((a, b) => b.notional - a.notional).slice(0, 4);
+    for (const h of heat) {
+      out.push({
+        price: h.price,
+        color: h.side === "long" ? "#16a34a" : "#dc2626",
+        label: `${h.side === "long" ? "Liq L" : "Liq S"} ${h.leverage}x`,
+        lineStyle: 2,
+      });
+    }
+    const poc = clusters.find((c) => c.poc);
+    if (poc) out.push({ price: poc.price, color: "#f59e0b", label: "POC", lineStyle: 0 });
+    for (const w of book.topWalls.slice(0, 2)) {
+      out.push({
+        price: w.price,
+        color: w.side === "bid" ? "#22c55e" : "#ef4444",
+        label: `${w.side === "bid" ? "Ściana bid" : "Ściana ask"}`,
+        lineStyle: 3,
+      });
+    }
+    return out;
+  }, [heatmap, clusters, book]);
+
   return (
     <div className="space-y-6">
       <header className="rounded-xl border border-border bg-card p-5">
