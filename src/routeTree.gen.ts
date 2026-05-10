@@ -15,6 +15,7 @@ import { Route as SilaRouteImport } from './routes/sila'
 import { Route as SetupyRouteImport } from './routes/setupy'
 import { Route as SentymentRouteImport } from './routes/sentyment'
 import { Route as PrzeplywRouteImport } from './routes/przeplyw'
+import { Route as LikwidacjaRouteImport } from './routes/likwidacja'
 import { Route as AsystentRouteImport } from './routes/asystent'
 import { Route as AlertyRouteImport } from './routes/alerty'
 import { Route as IndexRouteImport } from './routes/index'
@@ -49,6 +50,11 @@ const PrzeplywRoute = PrzeplywRouteImport.update({
   path: '/przeplyw',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LikwidacjaRoute = LikwidacjaRouteImport.update({
+  id: '/likwidacja',
+  path: '/likwidacja',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AsystentRoute = AsystentRouteImport.update({
   id: '/asystent',
   path: '/asystent',
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/alerty': typeof AlertyRoute
   '/asystent': typeof AsystentRoute
+  '/likwidacja': typeof LikwidacjaRoute
   '/przeplyw': typeof PrzeplywRoute
   '/sentyment': typeof SentymentRoute
   '/setupy': typeof SetupyRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/alerty': typeof AlertyRoute
   '/asystent': typeof AsystentRoute
+  '/likwidacja': typeof LikwidacjaRoute
   '/przeplyw': typeof PrzeplywRoute
   '/sentyment': typeof SentymentRoute
   '/setupy': typeof SetupyRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/alerty': typeof AlertyRoute
   '/asystent': typeof AsystentRoute
+  '/likwidacja': typeof LikwidacjaRoute
   '/przeplyw': typeof PrzeplywRoute
   '/sentyment': typeof SentymentRoute
   '/setupy': typeof SetupyRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/alerty'
     | '/asystent'
+    | '/likwidacja'
     | '/przeplyw'
     | '/sentyment'
     | '/setupy'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/alerty'
     | '/asystent'
+    | '/likwidacja'
     | '/przeplyw'
     | '/sentyment'
     | '/setupy'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/alerty'
     | '/asystent'
+    | '/likwidacja'
     | '/przeplyw'
     | '/sentyment'
     | '/setupy'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlertyRoute: typeof AlertyRoute
   AsystentRoute: typeof AsystentRoute
+  LikwidacjaRoute: typeof LikwidacjaRoute
   PrzeplywRoute: typeof PrzeplywRoute
   SentymentRoute: typeof SentymentRoute
   SetupyRoute: typeof SetupyRoute
@@ -191,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrzeplywRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/likwidacja': {
+      id: '/likwidacja'
+      path: '/likwidacja'
+      fullPath: '/likwidacja'
+      preLoaderRoute: typeof LikwidacjaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/asystent': {
       id: '/asystent'
       path: '/asystent'
@@ -219,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlertyRoute: AlertyRoute,
   AsystentRoute: AsystentRoute,
+  LikwidacjaRoute: LikwidacjaRoute,
   PrzeplywRoute: PrzeplywRoute,
   SentymentRoute: SentymentRoute,
   SetupyRoute: SetupyRoute,
@@ -229,3 +250,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
