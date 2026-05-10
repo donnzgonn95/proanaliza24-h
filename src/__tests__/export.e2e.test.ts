@@ -115,7 +115,6 @@ describe("E2E: alerty -> historia -> eksport JSON", () => {
 });
 
 describe("UI dedup: kubełki czasowe", () => {
-  const { alertKey } = await import("../lib/notifications");
   const a = { id: "x", time: "", symbol: "BTC", level: "critical" as const, message: "pump +6%" };
 
   it("preset 5min: drugi alert po 4 min trafia w ten sam kubełek", () => {
