@@ -7,6 +7,7 @@ import { RSIChart } from "@/components/RSIChart";
 import { WatchlistStar } from "@/components/WatchlistStar";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { sma, ema, rsi as rsiCalc } from "@/lib/indicators";
+import { AlertTriggersPanel } from "@/components/AlertTriggersPanel";
 import { cn } from "@/lib/utils";
 
 const PREFS_KEY = "coin:chart-prefs:v1";
