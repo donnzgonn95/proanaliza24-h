@@ -430,8 +430,15 @@ function NotificationsSection() {
                 <li key={h.id} className="p-2.5 text-xs">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-semibold">{h.title}</span>
-                    <span className="num text-[10px] text-muted-foreground">
-                      {new Date(h.ts).toLocaleTimeString("pl-PL")}
+                    <span className="flex items-center gap-1.5">
+                      {h.muted && (
+                        <span className="rounded bg-warning/20 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-warning">
+                          cisza
+                        </span>
+                      )}
+                      <span className="num text-[10px] text-muted-foreground">
+                        {new Date(h.ts).toLocaleTimeString("pl-PL")}
+                      </span>
                     </span>
                   </div>
                   <div className="mt-0.5 text-muted-foreground">{h.body}</div>
