@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, BellOff, Check, Radio, Send, Trash2 } from "lucide-react";
+import { Bell, BellOff, Check, Download, Radio, Send, Trash2 } from "lucide-react";
 import {
   DATA_SOURCES,
   DATA_SOURCE_LABELS,
@@ -13,6 +13,8 @@ import { fetchCoingeckoCoins } from "@/lib/providers/coingecko";
 import { fetchCryptoCompareCoins } from "@/lib/providers/cryptocompare";
 import {
   clearNotifHistory,
+  DEDUP_PRESETS,
+  exportNotifHistory,
   fireNotification,
   isInQuietHours,
   notifPermission,
@@ -23,6 +25,7 @@ import {
   useNotifSettings,
   type NotifLevel,
 } from "@/lib/notifications";
+import { QuietHoursPreview } from "@/components/QuietHoursPreview";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
