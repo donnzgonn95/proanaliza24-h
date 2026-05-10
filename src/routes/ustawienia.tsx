@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, BellOff, Check, Radio, Send, Trash2 } from "lucide-react";
+import { Bell, BellOff, Check, Download, Radio, Send, Trash2 } from "lucide-react";
 import {
   DATA_SOURCES,
   DATA_SOURCE_LABELS,
@@ -13,6 +13,8 @@ import { fetchCoingeckoCoins } from "@/lib/providers/coingecko";
 import { fetchCryptoCompareCoins } from "@/lib/providers/cryptocompare";
 import {
   clearNotifHistory,
+  DEDUP_PRESETS,
+  exportNotifHistory,
   fireNotification,
   isInQuietHours,
   notifPermission,
@@ -23,6 +25,7 @@ import {
   useNotifSettings,
   type NotifLevel,
 } from "@/lib/notifications";
+import { QuietHoursPreview } from "@/components/QuietHoursPreview";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
@@ -306,11 +309,42 @@ function NotificationsSection() {
               />
             </label>
           </div>
+          <QuietHoursPreview qh={settings.quietHours} />
           {settings.quietHours.enabled && (
             <div className={cn("text-xs", muted ? "text-warning" : "text-muted-foreground")}>
               {muted ? "🌙 Teraz trwa cisza — powiadomienia są wyciszone." : "🔔 Poza godzinami ciszy — powiadomienia działają."}
             </div>
           )}
+        </div>
+
+        {/* Limity duplikacji */}
+        <div className="space-y-2 border-t border-border pt-4" data-testid="dedup-section">
+          <div>
+            <div className="text-sm font-semibold">Limit duplikacji alertów</div>
+            <div className="text-xs text-muted-foreground">
+              Ten sam alert (symbol + poziom + treść) nie powtórzy się częściej niż co wybrany czas.
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {DEDUP_PRESETS.map((m) => {
+              const active = settings.dedupMinutes === m;
+              return (
+                <button
+                  key={m}
+                  data-testid={`dedup-${m}`}
+                  onClick={() => setNotifSettings({ dedupMinutes: m })}
+                  className={cn(
+                    "rounded-md border px-2.5 py-1 text-xs num transition-colors",
+                    active
+                      ? "border-primary bg-primary/15 text-primary"
+                      : "border-border bg-background hover:bg-secondary",
+                  )}
+                >
+                  {m < 60 ? `${m} min` : `${m / 60} h`}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2 border-t border-border pt-4">
@@ -368,13 +402,23 @@ function NotificationsSection() {
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Historia powiadomień ({history.length})
             </div>
-            <button
-              data-testid="clear-history"
-              onClick={() => clearNotifHistory()}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs hover:bg-secondary"
-            >
-              <Trash2 className="h-3 w-3" /> Wyczyść
-            </button>
+            <div className="flex gap-1.5">
+              <button
+                data-testid="export-history"
+                onClick={() => exportNotifHistory()}
+                disabled={history.length === 0}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs hover:bg-secondary disabled:opacity-50"
+              >
+                <Download className="h-3 w-3" /> Eksport
+              </button>
+              <button
+                data-testid="clear-history"
+                onClick={() => clearNotifHistory()}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs hover:bg-secondary"
+              >
+                <Trash2 className="h-3 w-3" /> Wyczyść
+              </button>
+            </div>
           </div>
           {history.length === 0 ? (
             <div className="rounded-md bg-background/40 p-3 text-xs text-muted-foreground">
@@ -386,8 +430,15 @@ function NotificationsSection() {
                 <li key={h.id} className="p-2.5 text-xs">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-semibold">{h.title}</span>
-                    <span className="num text-[10px] text-muted-foreground">
-                      {new Date(h.ts).toLocaleTimeString("pl-PL")}
+                    <span className="flex items-center gap-1.5">
+                      {h.muted && (
+                        <span className="rounded bg-warning/20 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-warning">
+                          cisza
+                        </span>
+                      )}
+                      <span className="num text-[10px] text-muted-foreground">
+                        {new Date(h.ts).toLocaleTimeString("pl-PL")}
+                      </span>
                     </span>
                   </div>
                   <div className="mt-0.5 text-muted-foreground">{h.body}</div>
