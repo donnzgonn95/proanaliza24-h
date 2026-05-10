@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useLiveCoins } from "@/lib/binance";
 import { coins as demoCoins } from "@/lib/demo-data";
+import { useTopCoins, useCoinOHLC } from "@/lib/top-coins";
+import { CandlestickChart, type ChartZone } from "@/components/CandlestickChart";
 import {
   buildHeatmap,
   buildVolumeClusters,
@@ -13,6 +15,7 @@ import { formatMoney } from "@/components/StatPill";
 import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
+  CandlestickChart as CandleIcon,
   Droplets,
   Flame,
   Layers,
@@ -62,6 +65,37 @@ function LiquidityPage() {
   const shortLiq = heatmap.filter((c) => c.side === "short").reduce((s, c) => s + c.notional, 0);
   const maxClusterVol = Math.max(...clusters.map((c) => c.volume));
 
+  // Resolve CoinGecko id from top100 to fetch OHLC for the candlestick view.
+  const { data: top } = useTopCoins();
+  const cgId = top?.find((c) => c.symbol === coin.symbol)?.id;
+  const [days, setDays] = useState<number>(7);
+  const { data: candles, isLoading: loadingCandles, isError: candlesError } = useCoinOHLC(cgId, days);
+
+  // Build price-line zones from microstructure data.
+  const zones = useMemo<ChartZone[]>(() => {
+    const out: ChartZone[] = [];
+    const heat = [...heatmap].sort((a, b) => b.notional - a.notional).slice(0, 4);
+    for (const h of heat) {
+      out.push({
+        price: h.price,
+        color: h.side === "long" ? "#16a34a" : "#dc2626",
+        label: `${h.side === "long" ? "Liq L" : "Liq S"} ${h.leverage}x`,
+        lineStyle: 2,
+      });
+    }
+    const poc = clusters.find((c) => c.poc);
+    if (poc) out.push({ price: poc.price, color: "#f59e0b", label: "POC", lineStyle: 0 });
+    for (const w of book.topWalls.slice(0, 2)) {
+      out.push({
+        price: w.price,
+        color: w.side === "bid" ? "#22c55e" : "#ef4444",
+        label: `${w.side === "bid" ? "Ściana bid" : "Ściana ask"}`,
+        lineStyle: 3,
+      });
+    }
+    return out;
+  }, [heatmap, clusters, book]);
+
   return (
     <div className="space-y-6">
       <header className="rounded-xl border border-border bg-card p-5">
@@ -103,7 +137,61 @@ function LiquidityPage() {
         </div>
       </header>
 
-      {/* Heatmap */}
+      {/* Candlestick with liquidity zones */}
+      <section className="rounded-xl border border-border bg-card p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <SectionHeader
+            icon={CandleIcon}
+            title="Płynność na świecach"
+            desc="Wykres OHLC z naniesionymi strefami: kluczowe klastry likwidacji, POC i ściany w księdze."
+          />
+          <div className="flex flex-wrap gap-1">
+            {[
+              { label: "1D", days: 1 },
+              { label: "7D", days: 7 },
+              { label: "30D", days: 30 },
+              { label: "90D", days: 90 },
+            ].map((r) => (
+              <button
+                key={r.days}
+                onClick={() => setDays(r.days)}
+                className={cn(
+                  "rounded-md border border-border px-2.5 py-1 text-xs",
+                  days === r.days
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+          <Legend color="#dc2626" label="Liq Short (powyżej)" />
+          <Legend color="#16a34a" label="Liq Long (poniżej)" />
+          <Legend color="#f59e0b" label="POC" />
+          <Legend color="#22c55e" label="Ściana bid" dashed />
+          <Legend color="#ef4444" label="Ściana ask" dashed />
+        </div>
+        <div className="mt-3">
+          {!cgId && (
+            <div className="py-12 text-center text-sm text-muted-foreground">
+              Brak danych OHLC dla {coin.symbol} (poza top 100).
+            </div>
+          )}
+          {cgId && loadingCandles && (
+            <div className="py-12 text-center text-sm text-muted-foreground">Ładuję świece…</div>
+          )}
+          {cgId && candlesError && (
+            <div className="py-12 text-center text-sm text-bear">Nie udało się pobrać OHLC.</div>
+          )}
+          {cgId && candles && candles.length > 0 && (
+            <CandlestickChart data={candles} zones={zones} height={360} />
+          )}
+        </div>
+      </section>
+
       <section className="rounded-xl border border-border bg-card p-5">
         <SectionHeader
           icon={Flame}
@@ -372,5 +460,22 @@ function SectionHeader({
         <p className="text-xs text-muted-foreground">{desc}</p>
       </div>
     </div>
+  );
+}
+
+function Legend({ color, label, dashed }: { color: string; label: string; dashed?: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded border border-border bg-background/40 px-1.5 py-0.5">
+      <span
+        className="inline-block h-0.5 w-3"
+        style={{
+          backgroundColor: dashed ? "transparent" : color,
+          backgroundImage: dashed
+            ? `repeating-linear-gradient(90deg, ${color} 0 3px, transparent 3px 6px)`
+            : undefined,
+        }}
+      />
+      {label}
+    </span>
   );
 }

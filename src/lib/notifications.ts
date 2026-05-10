@@ -20,6 +20,8 @@ export type NotifSettings = {
   quietHours: QuietHours;
   /** Minimal time window between identical alerts (minutes). */
   dedupMinutes: number;
+  /** When true, alerts only fire for symbols on the watchlist. */
+  watchlistOnly: boolean;
 };
 
 const DEFAULTS: NotifSettings = {
@@ -28,6 +30,7 @@ const DEFAULTS: NotifSettings = {
   inAppToast: true,
   quietHours: { enabled: false, from: "22:00", to: "07:00" },
   dedupMinutes: 60,
+  watchlistOnly: false,
 };
 
 export const DEDUP_PRESETS = [5, 15, 30, 60, 180, 360] as const;
@@ -60,6 +63,7 @@ function read(): NotifSettings {
       levels: { ...DEFAULTS.levels, ...(p.levels ?? {}) },
       quietHours: { ...DEFAULTS.quietHours, ...(p.quietHours ?? {}) },
       dedupMinutes: typeof p.dedupMinutes === "number" ? p.dedupMinutes : DEFAULTS.dedupMinutes,
+      watchlistOnly: !!p.watchlistOnly,
     };
   } catch {
     return DEFAULTS;
@@ -293,8 +297,20 @@ export function useAlertNotifications() {
     const seen = loadSeen();
     const firstRun = !window.localStorage.getItem(SEEN_KEY);
 
+    let watchlist: Set<string> | null = null;
+    if (settings.watchlistOnly) {
+      try {
+        const raw = window.localStorage.getItem("watchlist:v1");
+        const arr = raw ? (JSON.parse(raw) as string[]) : [];
+        watchlist = new Set(arr.map((s) => String(s).toUpperCase()));
+      } catch {
+        watchlist = new Set();
+      }
+    }
+
     for (const a of alerts) {
       if (!settings.levels[a.level]) continue;
+      if (watchlist && !watchlist.has(a.symbol.toUpperCase())) continue;
       const k = alertKey(a, settings.dedupMinutes);
       if (seen.has(k)) continue;
       seen.add(k);
