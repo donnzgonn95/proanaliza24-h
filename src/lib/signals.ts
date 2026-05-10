@@ -1,0 +1,154 @@
+// Generate setups & alerts dynamically from live coin data.
+import type { Coin } from "./demo-data";
+import type { Setup, Alert } from "./demo-data";
+
+function round(n: number, dp = 2) {
+  const f = Math.pow(10, dp);
+  return Math.round(n * f) / f;
+}
+
+function priceDp(p: number) {
+  if (p >= 1000) return 0;
+  if (p >= 10) return 2;
+  if (p >= 1) return 3;
+  if (p >= 0.1) return 4;
+  return 5;
+}
+
+export function generateSetups(coins: Coin[]): Setup[] {
+  if (!coins.length) return [];
+  const sorted = [...coins].sort((a, b) => b.strength - a.strength);
+  const top = sorted.slice(0, 3);
+  const bottom = sorted.slice(-2).reverse();
+
+  const setups: Setup[] = [];
+
+  for (const c of top) {
+    const dp = priceDp(c.price);
+    // Long: SL ~4-5% below, TP ~12-15% above based on strength
+    const slPct = c.rsi > 70 ? 0.045 : 0.05;
+    const tpPct = 0.08 + (c.strength / 100) * 0.12; // 8% – 20%
+    const sl = round(c.price * (1 - slPct), dp);
+    const tp = round(c.price * (1 + tpPct), dp);
+    const rr = (tp - c.price) / (c.price - sl);
+    const confidence = Math.min(95, Math.round(c.strength * 0.85 + (c.change24h > 0 ? 8 : 0)));
+    const reason =
+      c.change7d > 5
+        ? `Silny trend 7D (+${c.change7d.toFixed(1)}%), momentum 24h ${c.change24h.toFixed(1)}%, RSI ${c.rsi}.`
+        : `Najwyższa siła relatywna w koszyku, RSI ${c.rsi}, wolumen ${(c.volume24h / 1e9).toFixed(2)}B.`;
+    setups.push({
+      symbol: c.symbol,
+      type: c.rsi > 75 ? "Obserwuj" : "Long",
+      entry: round(c.price, dp),
+      stopLoss: sl,
+      takeProfit: tp,
+      riskReward: round(rr, 1),
+      confidence,
+      reason: c.rsi > 75 ? `Wykupienie (RSI ${c.rsi}). ${reason} Czekaj na korektę do EMA20.` : reason,
+      timeframe: "4H",
+    });
+  }
+
+  for (const c of bottom) {
+    const dp = priceDp(c.price);
+    const slPct = 0.05;
+    const tpPct = 0.1 + ((100 - c.strength) / 100) * 0.08;
+    const sl = round(c.price * (1 + slPct), dp);
+    const tp = round(c.price * (1 - tpPct), dp);
+    const rr = (c.price - tp) / (sl - c.price);
+    const confidence = Math.min(85, Math.round((100 - c.strength) * 0.7 + (c.change24h < 0 ? 8 : 0)));
+    const isWeakEnough = c.change7d < -2 || c.rsi < 40;
+    setups.push({
+      symbol: c.symbol,
+      type: isWeakEnough ? "Short" : "Obserwuj",
+      entry: round(c.price, dp),
+      stopLoss: sl,
+      takeProfit: tp,
+      riskReward: round(rr, 1),
+      confidence,
+      reason: isWeakEnough
+        ? `Najsłabsza relatywnie (${c.change7d.toFixed(1)}% 7D), RSI ${c.rsi}, brak popytu.`
+        : `Słabość względna, ale brak potwierdzenia spadku — czekaj na pęknięcie wsparcia.`,
+      timeframe: "1D",
+    });
+  }
+
+  return setups;
+}
+
+export function generateAlerts(coins: Coin[]): Alert[] {
+  const out: Alert[] = [];
+  const now = new Date();
+  const t = (offsetMin: number) => {
+    const d = new Date(now.getTime() - offsetMin * 60_000);
+    return d.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
+  };
+
+  let id = 1;
+  const push = (a: Omit<Alert, "id">) => out.push({ id: String(id++), ...a });
+
+  for (const c of coins) {
+    if (c.change24h >= 5) {
+      push({
+        time: t(out.length * 7 + 5),
+        symbol: c.symbol,
+        level: "critical",
+        message: `Silny ruch +${c.change24h.toFixed(1)}% w 24h — potwierdzony impet, śledź wolumen.`,
+      });
+    } else if (c.change24h <= -5) {
+      push({
+        time: t(out.length * 7 + 5),
+        symbol: c.symbol,
+        level: "critical",
+        message: `Spadek ${c.change24h.toFixed(1)}% w 24h — możliwa kontynuacja, uważaj na SL.`,
+      });
+    }
+
+    if (c.rsi >= 70) {
+      push({
+        time: t(out.length * 7 + 8),
+        symbol: c.symbol,
+        level: "warning",
+        message: `RSI ${c.rsi} — strefa wykupienia, ostrożnie z pogonią.`,
+      });
+    } else if (c.rsi <= 30) {
+      push({
+        time: t(out.length * 7 + 8),
+        symbol: c.symbol,
+        level: "warning",
+        message: `RSI ${c.rsi} — wyprzedanie, możliwe odbicie techniczne.`,
+      });
+    }
+
+    if (c.change7d >= 10) {
+      push({
+        time: t(out.length * 7 + 12),
+        symbol: c.symbol,
+        level: "info",
+        message: `Trend 7D +${c.change7d.toFixed(1)}% — jeden z liderów rotacji kapitału.`,
+      });
+    } else if (c.change7d <= -8) {
+      push({
+        time: t(out.length * 7 + 12),
+        symbol: c.symbol,
+        level: "info",
+        message: `Trend 7D ${c.change7d.toFixed(1)}% — odpływ kapitału, słabość relatywna.`,
+      });
+    }
+  }
+
+  // Sort by severity and recency
+  const order = { critical: 0, warning: 1, info: 2 } as const;
+  out.sort((a, b) => order[a.level] - order[b.level]);
+
+  if (!out.length) {
+    push({
+      time: t(0),
+      symbol: "MKT",
+      level: "info",
+      message: "Rynek spokojny — brak ekstremów RSI ani gwałtownych zmian wolumenu.",
+    });
+  }
+
+  return out.slice(0, 12);
+}
