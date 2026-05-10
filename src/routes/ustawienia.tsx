@@ -495,7 +495,7 @@ function AiLimitsSection() {
             onClick={() => { if (confirm("Wyczyścić historię zużycia?")) clearUsage(); }}
             className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-secondary"
           >
-            <Trash className="mr-1 inline h-3 w-3" /> Wyczyść licznik
+            <Trash2 className="mr-1 inline h-3 w-3" /> Wyczyść licznik
           </button>
         </div>
       </div>
