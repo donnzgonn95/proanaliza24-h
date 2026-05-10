@@ -402,13 +402,23 @@ function NotificationsSection() {
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Historia powiadomień ({history.length})
             </div>
-            <button
-              data-testid="clear-history"
-              onClick={() => clearNotifHistory()}
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs hover:bg-secondary"
-            >
-              <Trash2 className="h-3 w-3" /> Wyczyść
-            </button>
+            <div className="flex gap-1.5">
+              <button
+                data-testid="export-history"
+                onClick={() => exportNotifHistory()}
+                disabled={history.length === 0}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs hover:bg-secondary disabled:opacity-50"
+              >
+                <Download className="h-3 w-3" /> Eksport
+              </button>
+              <button
+                data-testid="clear-history"
+                onClick={() => clearNotifHistory()}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-xs hover:bg-secondary"
+              >
+                <Trash2 className="h-3 w-3" /> Wyczyść
+              </button>
+            </div>
           </div>
           {history.length === 0 ? (
             <div className="rounded-md bg-background/40 p-3 text-xs text-muted-foreground">
