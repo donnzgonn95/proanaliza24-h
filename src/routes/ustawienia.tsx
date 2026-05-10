@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, BellOff, Check, Download, Radio, Send, Trash2 } from "lucide-react";
+import { Activity, Bell, BellOff, Check, Download, Radio, Send, Trash2 } from "lucide-react";
+import { clearUsage, setLimits, useAiUsage, DEFAULT_LIMITS } from "@/lib/ai-usage";
 import {
   DATA_SOURCES,
   DATA_SOURCE_LABELS,
@@ -455,8 +456,6 @@ function NotificationsSection() {
 }
 
 /* ---------- AI Limits section ---------- */
-import { Activity, Trash2 as Trash } from "lucide-react";
-import { clearUsage, setLimits, useAiUsage, DEFAULT_LIMITS } from "@/lib/ai-usage";
 
 function AiLimitsSection() {
   const { stats, limits } = useAiUsage();
