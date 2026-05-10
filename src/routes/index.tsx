@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { simpleAdvice, sentiment, setups, alerts } from "@/lib/demo-data";
-import { ChangePill } from "@/components/StatPill";
-import { ArrowRight, CheckCircle2, Flame, ShieldAlert } from "lucide-react";
+import { useLiveCoins } from "@/lib/binance";
+import { ChangePill, formatMoney } from "@/components/StatPill";
+import { ArrowRight, CheckCircle2, Flame, Radio, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
