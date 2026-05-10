@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useTopCoins, useCoinOHLC, useCoinVolumes } from "@/lib/top-coins";
@@ -8,6 +8,21 @@ import { WatchlistStar } from "@/components/WatchlistStar";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { sma, ema, rsi as rsiCalc } from "@/lib/indicators";
 import { cn } from "@/lib/utils";
+
+const PREFS_KEY = "coin:chart-prefs:v1";
+type Prefs = { days: number; showSMA: boolean; showEMA: boolean; showRSI: boolean; showVolume: boolean };
+const DEFAULT_PREFS: Prefs = { days: 30, showSMA: true, showEMA: true, showRSI: true, showVolume: true };
+
+function loadPrefs(): Prefs {
+  if (typeof window === "undefined") return DEFAULT_PREFS;
+  try {
+    const raw = window.localStorage.getItem(PREFS_KEY);
+    if (!raw) return DEFAULT_PREFS;
+    return { ...DEFAULT_PREFS, ...(JSON.parse(raw) as Partial<Prefs>) };
+  } catch {
+    return DEFAULT_PREFS;
+  }
+}
 
 export const Route = createFileRoute("/coin/$symbol")({
   head: ({ params }) => ({
