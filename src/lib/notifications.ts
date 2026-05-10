@@ -320,35 +320,95 @@ export function useAlertNotifications() {
     saveSeen(seen);
 
     // ===== Custom price triggers (favorites) =====
+    // Re-arming jest per-trigger (per coin + per poziom/kierunek). Trigger
+    // wystrzeliwuje przy przekroczeniu progu, potem czeka aż cena wróci na
+    // przeciwną stronę progu (histerezis), zanim znów się uzbroi.
     const triggers = readTriggers().filter((t) => t.enabled);
     if (triggers.length) {
-      const fired = readFired();
       const priceBy = new Map(coins.map((c) => [c.symbol.toUpperCase(), c.price]));
       let dirty = false;
-      for (const t of triggers) {
+      const next = readTriggers();
+      for (const t of next) {
+        if (!t.enabled) continue;
         const px = priceBy.get(t.symbol.toUpperCase());
         if (px == null) continue;
-        const hit = t.side === "above" ? px >= t.price : px <= t.price;
-        if (!hit) continue;
-        const last = fired[t.id] ?? 0;
-        // Re-arm after dedup window
-        if (Date.now() - last < settings.dedupMinutes * 60_000) continue;
-        fired[t.id] = Date.now();
-        dirty = true;
-        if (!firstRun) {
-          fireNotification(
-            {
-              id: `trig-${t.id}`,
-              time: new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }),
-              symbol: t.symbol,
-              level: "warning",
-              message: `Cena ${t.side === "above" ? "przekroczyła" : "spadła poniżej"} $${t.price} (aktualnie $${px.toFixed(2)})`,
-            },
-            settings,
-          );
+
+        if (t.kind === "price") {
+          const hit = t.side === "above" ? px >= t.price : px <= t.price;
+          const armed = t.armed !== false;
+          if (hit && armed) {
+            t.armed = false;
+            dirty = true;
+            if (!firstRun) {
+              fireNotification(
+                {
+                  id: `trig-${t.id}`,
+                  time: new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }),
+                  symbol: t.symbol,
+                  level: "warning",
+                  message: `Cena ${t.side === "above" ? "przekroczyła" : "spadła poniżej"} $${t.price} (aktualnie $${px.toFixed(2)})`,
+                },
+                settings,
+              );
+            }
+          } else if (!hit && !armed) {
+            // Re-arm gdy cena wróci na drugą stronę progu.
+            t.armed = true;
+            dirty = true;
+          }
+        } else if (t.kind === "pct") {
+          const change = ((px - t.refPrice) / t.refPrice) * 100;
+          // Up direction
+          if (t.pctUp != null) {
+            const hit = change >= t.pctUp;
+            const armed = t.armedUp !== false;
+            if (hit && armed) {
+              t.armedUp = false;
+              dirty = true;
+              if (!firstRun) {
+                fireNotification(
+                  {
+                    id: `trig-${t.id}-up`,
+                    time: new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }),
+                    symbol: t.symbol,
+                    level: "warning",
+                    message: `Wzrost ≥ +${t.pctUp}% od $${t.refPrice} (Δ ${change.toFixed(2)}%, teraz $${px.toFixed(2)})`,
+                  },
+                  settings,
+                );
+              }
+            } else if (!hit && !armed && change < t.pctUp - 0.25) {
+              t.armedUp = true;
+              dirty = true;
+            }
+          }
+          // Down direction
+          if (t.pctDown != null) {
+            const hit = change <= -t.pctDown;
+            const armed = t.armedDown !== false;
+            if (hit && armed) {
+              t.armedDown = false;
+              dirty = true;
+              if (!firstRun) {
+                fireNotification(
+                  {
+                    id: `trig-${t.id}-down`,
+                    time: new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }),
+                    symbol: t.symbol,
+                    level: "warning",
+                    message: `Spadek ≤ -${t.pctDown}% od $${t.refPrice} (Δ ${change.toFixed(2)}%, teraz $${px.toFixed(2)})`,
+                  },
+                  settings,
+                );
+              }
+            } else if (!hit && !armed && change > -t.pctDown + 0.25) {
+              t.armedDown = true;
+              dirty = true;
+            }
+          }
         }
       }
-      if (dirty) writeFired(fired);
+      if (dirty) writeTriggers(next);
     }
   }, [coins, settings]);
 }
