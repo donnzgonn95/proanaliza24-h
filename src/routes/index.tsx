@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { sentiment, setups as demoSetups, alerts as demoAlerts } from "@/lib/demo-data";
 import { useLiveCoins } from "@/lib/binance";
-import { generateSetups, generateAlerts } from "@/lib/signals";
+import { adjustAlertsForRegime, adjustSetupsForRegime, generateSetups, generateAlerts } from "@/lib/signals";
+import { useRegime } from "@/lib/regime-store";
 import { useMemo } from "react";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { MarketRegimeBanner } from "@/components/MarketRegimeBanner";
+import { RegimeHistoryPanel } from "@/components/RegimeHistoryPanel";
 import { ArrowRight, Radio, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
