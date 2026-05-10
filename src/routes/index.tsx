@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { simpleAdvice, sentiment, setups, alerts } from "@/lib/demo-data";
+import { simpleAdvice, sentiment, setups as demoSetups, alerts as demoAlerts } from "@/lib/demo-data";
 import { useLiveCoins } from "@/lib/binance";
+import { generateSetups, generateAlerts } from "@/lib/signals";
+import { useMemo } from "react";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { ArrowRight, CheckCircle2, Flame, Radio, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
