@@ -20,6 +20,8 @@ export type NotifSettings = {
   quietHours: QuietHours;
   /** Minimal time window between identical alerts (minutes). */
   dedupMinutes: number;
+  /** When true, alerts only fire for symbols on the watchlist. */
+  watchlistOnly: boolean;
 };
 
 const DEFAULTS: NotifSettings = {
@@ -28,6 +30,7 @@ const DEFAULTS: NotifSettings = {
   inAppToast: true,
   quietHours: { enabled: false, from: "22:00", to: "07:00" },
   dedupMinutes: 60,
+  watchlistOnly: false,
 };
 
 export const DEDUP_PRESETS = [5, 15, 30, 60, 180, 360] as const;
