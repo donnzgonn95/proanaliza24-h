@@ -137,7 +137,61 @@ function LiquidityPage() {
         </div>
       </header>
 
-      {/* Heatmap */}
+      {/* Candlestick with liquidity zones */}
+      <section className="rounded-xl border border-border bg-card p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <SectionHeader
+            icon={CandleIcon}
+            title="Płynność na świecach"
+            desc="Wykres OHLC z naniesionymi strefami: kluczowe klastry likwidacji, POC i ściany w księdze."
+          />
+          <div className="flex flex-wrap gap-1">
+            {[
+              { label: "1D", days: 1 },
+              { label: "7D", days: 7 },
+              { label: "30D", days: 30 },
+              { label: "90D", days: 90 },
+            ].map((r) => (
+              <button
+                key={r.days}
+                onClick={() => setDays(r.days)}
+                className={cn(
+                  "rounded-md border border-border px-2.5 py-1 text-xs",
+                  days === r.days
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+          <Legend color="#dc2626" label="Liq Short (powyżej)" />
+          <Legend color="#16a34a" label="Liq Long (poniżej)" />
+          <Legend color="#f59e0b" label="POC" />
+          <Legend color="#22c55e" label="Ściana bid" dashed />
+          <Legend color="#ef4444" label="Ściana ask" dashed />
+        </div>
+        <div className="mt-3">
+          {!cgId && (
+            <div className="py-12 text-center text-sm text-muted-foreground">
+              Brak danych OHLC dla {coin.symbol} (poza top 100).
+            </div>
+          )}
+          {cgId && loadingCandles && (
+            <div className="py-12 text-center text-sm text-muted-foreground">Ładuję świece…</div>
+          )}
+          {cgId && candlesError && (
+            <div className="py-12 text-center text-sm text-bear">Nie udało się pobrać OHLC.</div>
+          )}
+          {cgId && candles && candles.length > 0 && (
+            <CandlestickChart data={candles} zones={zones} height={360} />
+          )}
+        </div>
+      </section>
+
       <section className="rounded-xl border border-border bg-card p-5">
         <SectionHeader
           icon={Flame}
