@@ -16,6 +16,7 @@ import { Route as SetupyRouteImport } from './routes/setupy'
 import { Route as SentymentRouteImport } from './routes/sentyment'
 import { Route as PrzeplywRouteImport } from './routes/przeplyw'
 import { Route as LikwidacjaRouteImport } from './routes/likwidacja'
+import { Route as HistoriaAlertowRouteImport } from './routes/historia-alertow'
 import { Route as AsystentRouteImport } from './routes/asystent'
 import { Route as AlertyRouteImport } from './routes/alerty'
 import { Route as IndexRouteImport } from './routes/index'
@@ -56,6 +57,11 @@ const LikwidacjaRoute = LikwidacjaRouteImport.update({
   path: '/likwidacja',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HistoriaAlertowRoute = HistoriaAlertowRouteImport.update({
+  id: '/historia-alertow',
+  path: '/historia-alertow',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AsystentRoute = AsystentRouteImport.update({
   id: '/asystent',
   path: '/asystent',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/alerty': typeof AlertyRoute
   '/asystent': typeof AsystentRoute
+  '/historia-alertow': typeof HistoriaAlertowRoute
   '/likwidacja': typeof LikwidacjaRoute
   '/przeplyw': typeof PrzeplywRoute
   '/sentyment': typeof SentymentRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/alerty': typeof AlertyRoute
   '/asystent': typeof AsystentRoute
+  '/historia-alertow': typeof HistoriaAlertowRoute
   '/likwidacja': typeof LikwidacjaRoute
   '/przeplyw': typeof PrzeplywRoute
   '/sentyment': typeof SentymentRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/alerty': typeof AlertyRoute
   '/asystent': typeof AsystentRoute
+  '/historia-alertow': typeof HistoriaAlertowRoute
   '/likwidacja': typeof LikwidacjaRoute
   '/przeplyw': typeof PrzeplywRoute
   '/sentyment': typeof SentymentRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/alerty'
     | '/asystent'
+    | '/historia-alertow'
     | '/likwidacja'
     | '/przeplyw'
     | '/sentyment'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/alerty'
     | '/asystent'
+    | '/historia-alertow'
     | '/likwidacja'
     | '/przeplyw'
     | '/sentyment'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/alerty'
     | '/asystent'
+    | '/historia-alertow'
     | '/likwidacja'
     | '/przeplyw'
     | '/sentyment'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlertyRoute: typeof AlertyRoute
   AsystentRoute: typeof AsystentRoute
+  HistoriaAlertowRoute: typeof HistoriaAlertowRoute
   LikwidacjaRoute: typeof LikwidacjaRoute
   PrzeplywRoute: typeof PrzeplywRoute
   SentymentRoute: typeof SentymentRoute
@@ -224,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LikwidacjaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/historia-alertow': {
+      id: '/historia-alertow'
+      path: '/historia-alertow'
+      fullPath: '/historia-alertow'
+      preLoaderRoute: typeof HistoriaAlertowRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/asystent': {
       id: '/asystent'
       path: '/asystent'
@@ -259,6 +279,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlertyRoute: AlertyRoute,
   AsystentRoute: AsystentRoute,
+  HistoriaAlertowRoute: HistoriaAlertowRoute,
   LikwidacjaRoute: LikwidacjaRoute,
   PrzeplywRoute: PrzeplywRoute,
   SentymentRoute: SentymentRoute,
