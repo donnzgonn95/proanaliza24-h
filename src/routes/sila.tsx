@@ -92,7 +92,7 @@ function SilaPage() {
             {ranked.slice(0, 3).map((c) => (
               <li key={c.symbol} className="flex justify-between">
                 <span className="font-semibold">{c.symbol}</span>
-                <span className="num text-bull">+{c.change7d}% (7D)</span>
+                <span className="num text-bull">{c.change24h >= 0 ? "+" : ""}{c.change24h.toFixed(2)}% (24h)</span>
               </li>
             ))}
           </ul>
