@@ -19,13 +19,19 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Activity className="h-4 w-4" strokeWidth={2.5} />
-          </div>
+        <Link to="/" className="flex items-center gap-2.5">
+          <img
+            src={eljotLogo}
+            alt="Logo eL Jot"
+            width={32}
+            height={32}
+            className="h-9 w-9 rounded-md bg-primary/10 p-0.5"
+          />
           <div className="leading-tight">
-            <div className="text-sm font-bold">CryptoPuls</div>
-            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">DEMO · v0.1</div>
+            <div className="text-sm font-bold">Kukomy co w rynkach piszczy</div>
+            <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+              DEMO · v0.1 · szczegółowa analiza struktury rynku by eL Jot
+            </div>
           </div>
         </Link>
         <div className="hidden items-center gap-1 md:flex">
