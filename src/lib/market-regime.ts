@@ -264,6 +264,63 @@ function build(id: RegimeId, m: RegimeMetrics): Regime {
   return { id, signals: baseSignals, ...presets[id] };
 }
 
+// Public helper: build a Regime by id reusing already computed signals/metrics from another regime.
+// Used for manual override — keeps real signals visible while showing the chosen narrative.
+export function buildPresetRegime(id: RegimeId, source: Regime): Regime {
+  // We need metrics; cheapest is to re-derive from existing signals values is messy,
+  // so we just re-run build() with synthetic metrics by reusing source numbers.
+  // Trick: the presets only depend on metrics for headline/confidence values that are
+  // already baked into source.signals; for override we keep source.signals and rewrite
+  // the narrative parts via the same presets table by hand.
+  const fakeMetrics = {
+    breadth: 0, avg24h: 0, avg7d: 0, btcChange7d: 0, altsAvg7d: 0,
+    altsMinusBtc7d: 0, panicCount: 0, euphoriaCount: 0, highRsiCount: 0,
+    lowRsiCount: 0, total: 0,
+  } as RegimeMetrics;
+  const built = build(id, fakeMetrics);
+  return { ...built, signals: source.signals, confidence: built.confidence };
+}
+
+// Thresholds & weights — exposed so the UI can explain why a regime was chosen.
+export const REGIME_THRESHOLDS: Array<{
+  id: RegimeId;
+  label: string;
+  rule: string;
+  priority: number;
+}> = [
+  { id: "panic", label: "Panic", priority: 1, rule: "avg24h ≤ -4% LUB ≥40% koszyka < -5% w 24h" },
+  { id: "risk-off", label: "Risk-Off", priority: 2, rule: "breadth < 35% ORAZ avg24h < -1%" },
+  { id: "altseason", label: "Altseason", priority: 3, rule: "(alty − BTC) 7D ≥ +6% ORAZ alty 7D > +5% ORAZ breadth > 55%" },
+  { id: "btc-dominance", label: "BTC Dominance", priority: 4, rule: "(BTC − alty) 7D ≥ +3% ORAZ BTC 7D > +1%" },
+  { id: "risk-on", label: "Risk-On", priority: 5, rule: "breadth ≥ 70% ORAZ avg24h ≥ +2% ORAZ ≥2 coiny > +5% w 24h" },
+  { id: "rotation", label: "Rotation", priority: 6, rule: "≥1 coin > +5% i ≥1 coin < -5% w 24h" },
+  { id: "stablecoin-inflow", label: "Stablecoin Inflow", priority: 7, rule: "|avg24h| < 1%, breadth 40–60%, brak euforii" },
+  { id: "neutral", label: "Neutral", priority: 8, rule: "Brak silnego sygnału (fallback)" },
+];
+
+// Per-metric weights used in the engine — surfaced in the UI for transparency.
+export const METRIC_WEIGHTS: Array<{
+  key: keyof RegimeMetrics;
+  label: string;
+  weight: "strong" | "medium" | "weak";
+  bullThreshold: string;
+  bearThreshold: string;
+}> = [
+  { key: "breadth", label: "Szerokość rynku (% zielonych)", weight: "strong", bullThreshold: "≥ 70%", bearThreshold: "< 35%" },
+  { key: "avg24h", label: "Średnia zmiana 24h", weight: "strong", bullThreshold: "≥ +2%", bearThreshold: "≤ -4%" },
+  { key: "avg7d", label: "Średnia zmiana 7D", weight: "medium", bullThreshold: "> 0%", bearThreshold: "< 0%" },
+  { key: "altsMinusBtc7d", label: "Alty vs BTC (7D)", weight: "medium", bullThreshold: "≥ +6% (altseason)", bearThreshold: "≤ -3% (BTC dom.)" },
+  { key: "euphoriaCount", label: "Coiny > +5% (24h)", weight: "weak", bullThreshold: "≥ 2", bearThreshold: "0" },
+  { key: "panicCount", label: "Coiny < -5% (24h)", weight: "weak", bullThreshold: "0", bearThreshold: "≥ 40% koszyka" },
+  { key: "highRsiCount", label: "RSI ≥ 70 (wykupienie)", weight: "weak", bullThreshold: "—", bearThreshold: "≥ 3 → uważaj" },
+  { key: "lowRsiCount", label: "RSI ≤ 30 (wyprzedanie)", weight: "weak", bullThreshold: "≥ 3 → odbicie", bearThreshold: "—" },
+];
+
+export const ALL_REGIME_IDS: RegimeId[] = [
+  "risk-on", "risk-off", "rotation", "altseason",
+  "btc-dominance", "stablecoin-inflow", "panic", "neutral",
+];
+
 function clamp(n: number, min = 0, max = 100) {
   return Math.max(min, Math.min(max, Math.round(n)));
 }

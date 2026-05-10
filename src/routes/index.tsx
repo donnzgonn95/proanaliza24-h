@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { sentiment, setups as demoSetups, alerts as demoAlerts } from "@/lib/demo-data";
 import { useLiveCoins } from "@/lib/binance";
-import { generateSetups, generateAlerts } from "@/lib/signals";
+import { adjustAlertsForRegime, adjustSetupsForRegime, generateSetups, generateAlerts } from "@/lib/signals";
+import { useRegime } from "@/lib/regime-store";
 import { useMemo } from "react";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { MarketRegimeBanner } from "@/components/MarketRegimeBanner";
+import { RegimeHistoryPanel } from "@/components/RegimeHistoryPanel";
 import { ArrowRight, Radio, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,13 +25,25 @@ function Index() {
   const featured = ["BTC", "ETH", "SOL", "ARB"];
   const liveTickers = (liveCoins ?? []).filter((c) => featured.includes(c.symbol));
 
-  const setups = useMemo(
+  // Active regime (auto or manual override) drives downstream signal filtering.
+  const coinsForRegime = liveCoins && liveCoins.length ? liveCoins : [];
+  const { active: activeRegime } = useRegime(coinsForRegime);
+
+  const rawSetups = useMemo(
     () => (liveCoins && liveCoins.length ? generateSetups(liveCoins) : demoSetups),
     [liveCoins],
   );
-  const alerts = useMemo(
+  const rawAlerts = useMemo(
     () => (liveCoins && liveCoins.length ? generateAlerts(liveCoins) : demoAlerts),
     [liveCoins],
+  );
+  const { setups, note: regimeNote } = useMemo(
+    () => adjustSetupsForRegime(rawSetups, activeRegime.id),
+    [rawSetups, activeRegime.id],
+  );
+  const alerts = useMemo(
+    () => adjustAlertsForRegime(rawAlerts, activeRegime.id),
+    [rawAlerts, activeRegime.id],
   );
   const top = setups.slice(0, 3);
 
@@ -72,8 +86,19 @@ function Index() {
 
       {/* Top setupy */}
       <section className="rounded-xl border border-border bg-card p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Top 3 setupy dziś</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-bold">Top 3 setupy dziś</h2>
+            <span className={cn(
+              "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+              regimeNote.tone === "bull" && "bg-bull/20 text-bull",
+              regimeNote.tone === "bear" && "bg-bear/20 text-bear",
+              regimeNote.tone === "warning" && "bg-warning/20 text-warning",
+              regimeNote.tone === "neutral" && "bg-muted text-muted-foreground",
+            )} title="Setupy są filtrowane wg aktualnego reżimu rynku">
+              {regimeNote.tag}
+            </span>
+          </div>
           <Link to="/setupy" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
             Wszystkie <ArrowRight className="h-3 w-3" />
           </Link>
@@ -134,6 +159,9 @@ function Index() {
           ))}
         </ul>
       </section>
+
+      {/* Regime change history */}
+      <RegimeHistoryPanel />
     </div>
   );
 }
