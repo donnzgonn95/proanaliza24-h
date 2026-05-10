@@ -1,1 +1,4 @@
 project_id = "ricdkmtpzipcsamjcehh"
+
+[functions.market-ai]
+verify_jwt = false

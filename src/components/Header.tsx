@@ -7,6 +7,7 @@ import {
   BarChart3,
   Bell,
   BookOpen,
+  Bot,
   ChevronDown,
   ChevronUp,
   RefreshCw,
@@ -25,6 +26,7 @@ const nav = [
   { to: "/sila", label: "Siła", icon: BarChart3 },
   { to: "/setupy", label: "Setupy", icon: Target },
   { to: "/alerty", label: "Alerty", icon: Bell },
+  { to: "/asystent", label: "Asystent", icon: Bot },
   { to: "/slownik", label: "Słownik", icon: BookOpen },
   { to: "/ustawienia", label: "Ustawienia", icon: Settings },
 ] as const;
