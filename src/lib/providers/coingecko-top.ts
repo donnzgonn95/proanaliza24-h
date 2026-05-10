@@ -80,3 +80,14 @@ export async function fetchCoinOHLC(id: string, days: number = 30): Promise<Cand
   const data = (await res.json()) as [number, number, number, number, number][];
   return data.map(([t, o, h, l, c]) => ({ time: Math.floor(t / 1000), open: o, high: h, low: l, close: c }));
 }
+
+export type VolumePoint = { time: number; value: number };
+
+// market_chart returns total_volumes: [ms, value]. Used to draw volume bars under candles.
+export async function fetchCoinVolumes(id: string, days: number): Promise<VolumePoint[]> {
+  const url = `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(id)}/market_chart?vs_currency=usd&days=${days}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`CoinGecko market_chart ${res.status}`);
+  const json = (await res.json()) as { total_volumes?: [number, number][] };
+  return (json.total_volumes ?? []).map(([t, v]) => ({ time: Math.floor(t / 1000), value: v }));
+}
