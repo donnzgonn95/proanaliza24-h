@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { setups } from "@/lib/demo-data";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useLiveCoins } from "@/lib/binance";
+import { generateSetups } from "@/lib/signals";
+import { setups as demoSetups } from "@/lib/demo-data";
+import { Radio, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/setupy")({
   head: () => ({
     meta: [
       { title: "Panel setupów — CryptoPuls" },
-      { name: "description", content: "Setupy Long, Short i obserwacyjne z poziomami wejścia, SL, TP i uzasadnieniem." },
+      { name: "description", content: "Setupy Long, Short i obserwacyjne z poziomami wejścia, SL, TP i uzasadnieniem — generowane z danych live." },
     ],
   }),
   component: SetupyPage,
@@ -17,7 +20,11 @@ const filters = ["Wszystkie", "Long", "Short", "Obserwuj"] as const;
 
 function SetupyPage() {
   const [filter, setFilter] = useState<(typeof filters)[number]>("Wszystkie");
+  const { data: coins, isLoading, isError, dataUpdatedAt } = useLiveCoins();
+
+  const setups = coins && coins.length ? generateSetups(coins) : demoSetups;
   const list = setups.filter((s) => filter === "Wszystkie" || s.type === filter);
+  const updated = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString("pl-PL") : "";
 
   return (
     <div className="space-y-6">
@@ -25,8 +32,21 @@ function SetupyPage() {
         <div>
           <h1 className="text-3xl font-bold">Panel setupów</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Konkretne plany transakcyjne: wejście, stop loss, take profit, R/R.
+            Generowane na żywo z rankingu siły: TOP 3 = Long, BOTTOM 2 = Short / Obserwuj.
           </p>
+          <div className="mt-2 flex items-center gap-2 text-xs">
+            {isLoading ? (
+              <span className="inline-flex items-center gap-1 text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" /> Ładowanie...
+              </span>
+            ) : isError ? (
+              <span className="text-bear">Błąd API — pokazuję dane DEMO</span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-bull">
+                <Radio className="h-3 w-3 animate-pulse" /> LIVE · aktualizacja {updated}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
           {filters.map((f) => (
@@ -46,8 +66,11 @@ function SetupyPage() {
 
       <section className="grid gap-4 md:grid-cols-2">
         {list.map((s) => {
-          const range = s.takeProfit - s.stopLoss;
-          const entryPos = ((s.entry - s.stopLoss) / range) * 100;
+          const isShort = s.type === "Short";
+          const lo = Math.min(s.stopLoss, s.takeProfit);
+          const hi = Math.max(s.stopLoss, s.takeProfit);
+          const range = hi - lo || 1;
+          const entryPos = ((s.entry - lo) / range) * 100;
           return (
             <article key={s.symbol + s.type} className="rounded-xl border border-border bg-card p-5">
               <header className="flex items-start justify-between">
@@ -71,7 +94,12 @@ function SetupyPage() {
                 <Cell label="TP" value={`$${s.takeProfit}`} tone="bull" />
               </div>
 
-              <div className="relative mt-4 h-2 rounded-full bg-gradient-to-r from-bear/30 via-muted to-bull/30">
+              <div className={cn(
+                "relative mt-4 h-2 rounded-full",
+                isShort
+                  ? "bg-gradient-to-r from-bull/30 via-muted to-bear/30"
+                  : "bg-gradient-to-r from-bear/30 via-muted to-bull/30",
+              )}>
                 <div
                   className="absolute -top-1 h-4 w-1 rounded bg-foreground"
                   style={{ left: `calc(${Math.max(2, Math.min(98, entryPos))}% - 2px)` }}
