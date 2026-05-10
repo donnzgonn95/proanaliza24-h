@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useLiveCoins } from "./binance";
 import { generateAlerts } from "./signals";
 import type { Alert } from "./demo-data";
-import { readTriggers, readFired, writeFired } from "./alert-triggers";
+import { readTriggers, writeTriggers } from "./alert-triggers";
 
 export type NotifLevel = Alert["level"];
 
