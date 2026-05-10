@@ -128,6 +128,9 @@ export function Header() {
               );
             })}
           </div>
+          <div className="border-t border-border px-3 py-2 md:hidden">
+            <CoinSearch />
+          </div>
           <nav className="flex gap-1 overflow-x-auto border-t border-border px-3 py-2 md:hidden">
             {nav.map((n) => {
               const active = path === n.to;
