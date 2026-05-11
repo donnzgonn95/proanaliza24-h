@@ -100,7 +100,7 @@ function CoinPage() {
   const setShowRSI = (fn: (v: boolean) => boolean) => setPrefs((p) => ({ ...p, showRSI: fn(p.showRSI) }));
   const setShowVolume = (fn: (v: boolean) => boolean) => setPrefs((p) => ({ ...p, showVolume: fn(p.showVolume) }));
 
-  // TradingView range — utrwalony osobno w localStorage.
+  // TradingView range — utrwalony osobno w localStorage (globalnie).
   const [tvRange, setTvRange] = useState<TradingViewRange>("3M");
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -113,7 +113,10 @@ function CoinPage() {
     }
   }, [tvRange]);
 
-  const tvSymbol = resolveTradingViewSymbol(sym);
+  // TradingView ustawienia per-coin (override symbolu, motyw, interwał).
+  const { settings: tvSettings, update: updateTvSettings } = useCoinTvSettings(sym);
+  const tvAutoSymbol = resolveTradingViewSymbol(sym);
+  const tvSymbol = tvSettings.symbolOverride ?? tvAutoSymbol;
 
   // Track as recently viewed once per visit/symbol.
   useEffect(() => {
