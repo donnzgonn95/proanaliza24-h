@@ -9,6 +9,9 @@ import { ChangePill, formatMoney } from "@/components/StatPill";
 import { sma, ema, rsi as rsiCalc } from "@/lib/indicators";
 import { AlertTriggersPanel } from "@/components/AlertTriggersPanel";
 import { TradingViewChart, resolveTradingViewSymbol, TV_RANGE_OPTIONS, type TradingViewRange } from "@/components/TradingViewChart";
+import { TradingViewRangeSwitcher } from "@/components/TradingViewRangeSwitcher";
+import { TradingViewSymbolOverride } from "@/components/TradingViewSymbolOverride";
+import { useCoinTvSettings, TV_INTERVAL_OPTIONS } from "@/lib/coin-tv-settings";
 import { pushRecentCoin } from "@/lib/recent-coins";
 import { cn } from "@/lib/utils";
 
