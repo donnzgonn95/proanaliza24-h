@@ -97,6 +97,21 @@ function CoinPage() {
   const setShowRSI = (fn: (v: boolean) => boolean) => setPrefs((p) => ({ ...p, showRSI: fn(p.showRSI) }));
   const setShowVolume = (fn: (v: boolean) => boolean) => setPrefs((p) => ({ ...p, showVolume: fn(p.showVolume) }));
 
+  // TradingView range — utrwalony osobno w localStorage.
+  const [tvRange, setTvRange] = useState<TradingViewRange>("3M");
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = window.localStorage.getItem(TV_RANGE_KEY) as TradingViewRange | null;
+    if (saved && (TV_RANGE_OPTIONS as readonly string[]).includes(saved)) setTvRange(saved);
+  }, []);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try { window.localStorage.setItem(TV_RANGE_KEY, tvRange); } catch { /* noop */ }
+    }
+  }, [tvRange]);
+
+  const tvSymbol = resolveTradingViewSymbol(sym);
+
   // Track as recently viewed once per visit/symbol.
   useEffect(() => {
     if (sym) pushRecentCoin(sym);
@@ -282,13 +297,39 @@ function CoinPage() {
         </p>
       </section>
 
-      {/* TradingView Advanced Chart — interaktywny wykres dla pary BINANCE:{SYM}USDT */}
+      {/* TradingView Advanced Chart — pełna mapa rynkowa pary z auto-mapowaniem giełdy */}
       <section className="rounded-xl border border-border bg-card p-5" aria-label="Wykres TradingView">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-bold">TradingView · {sym}/USDT</h2>
-          <span className="text-[11px] text-muted-foreground">Pełen zestaw narzędzi: rysowanie, wskaźniki, porównania.</span>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold">TradingView</h2>
+            <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span>Symbol:</span>
+              <code data-testid="tv-resolved-symbol" className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">
+                {tvSymbol}
+              </code>
+            </div>
+          </div>
+          <div role="tablist" aria-label="Zakres TradingView" data-testid="tv-range-switcher" className="inline-flex flex-wrap overflow-hidden rounded-md border border-border">
+            {TV_RANGE_OPTIONS.map((r) => (
+              <button
+                key={r}
+                role="tab"
+                aria-selected={tvRange === r}
+                data-testid={`tv-range-${r}`}
+                onClick={() => setTvRange(r)}
+                className={cn(
+                  "px-2.5 py-1 text-xs transition-colors",
+                  tvRange === r
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-card text-muted-foreground hover:bg-secondary hover:text-foreground",
+                )}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
         </div>
-        <TradingViewChart coinSymbol={sym} height={560} range="3M" />
+        <TradingViewChart coinSymbol={sym} height={560} range={tvRange} />
       </section>
 
       <AlertTriggersPanel symbol={sym} currentPrice={coin?.price} />
