@@ -45,12 +45,28 @@ export function WatchlistPanel() {
   });
 
   return (
-    <section className="rounded-xl border border-border bg-card p-5">
-      <div className="mb-3 flex items-center justify-between">
+    <section className="rounded-xl border border-border bg-card p-5" data-testid="watchlist-panel">
+      <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Star className="h-4 w-4 text-warning" />
           <h2 className="text-lg font-bold">Ulubione</h2>
           <span className="num text-xs text-muted-foreground">({list.length})</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={openPalette}
+            data-testid="watchlist-add"
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-semibold hover:bg-secondary"
+          >
+            <Plus className="h-3 w-3" /> Dodaj
+          </button>
+          <Link
+            to="/ulubione"
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
+          >
+            <Search className="h-3 w-3" /> Wszystkie
+          </Link>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
