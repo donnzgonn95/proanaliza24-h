@@ -8,11 +8,12 @@ import { WatchlistStar } from "@/components/WatchlistStar";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { sma, ema, rsi as rsiCalc } from "@/lib/indicators";
 import { AlertTriggersPanel } from "@/components/AlertTriggersPanel";
-import { TradingViewChart } from "@/components/TradingViewChart";
+import { TradingViewChart, resolveTradingViewSymbol, TV_RANGE_OPTIONS, type TradingViewRange } from "@/components/TradingViewChart";
 import { pushRecentCoin } from "@/lib/recent-coins";
 import { cn } from "@/lib/utils";
 
 const PREFS_KEY = "coin:chart-prefs:v1";
+const TV_RANGE_KEY = "coin:tv-range:v1";
 type Prefs = { days: number; showSMA: boolean; showEMA: boolean; showRSI: boolean; showVolume: boolean };
 const DEFAULT_PREFS: Prefs = { days: 30, showSMA: true, showEMA: true, showRSI: true, showVolume: true };
 
