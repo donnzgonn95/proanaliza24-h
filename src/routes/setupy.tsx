@@ -6,12 +6,15 @@ import { generateSetups } from "@/lib/signals";
 import { setups as demoSetups } from "@/lib/demo-data";
 import { Radio, Loader2 } from "lucide-react";
 
+import { buildSeo } from "@/lib/seo";
+
 export const Route = createFileRoute("/setupy")({
   head: () => ({
-    meta: [
-      { title: "Panel setupów — CryptoPuls" },
-      { name: "description", content: "Setupy Long, Short i obserwacyjne z poziomami wejścia, SL, TP i uzasadnieniem — generowane z danych live." },
-    ],
+    meta: buildSeo({
+      title: "Setupy Long/Short/Obserwuj na dziś",
+      description: "Generowane na żywo setupy z poziomami wejścia, stop-loss, take-profit i uzasadnieniem, filtrowane wg aktualnego reżimu rynku.",
+      path: "/setupy",
+    }),
   }),
   component: SetupyPage,
 });

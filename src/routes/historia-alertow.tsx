@@ -10,15 +10,15 @@ import {
 } from "@/lib/notifications";
 import { useWatchlist } from "@/lib/watchlist";
 
+import { buildSeo } from "@/lib/seo";
+
 export const Route = createFileRoute("/historia-alertow")({
   head: () => ({
-    meta: [
-      { title: "Historia alertów — CryptoPuls" },
-      {
-        name: "description",
-        content: "Historia wystrzelonych alertów dla ulubionych z filtrami symbol/status (przeczytane/nieprzeczytane).",
-      },
-    ],
+    meta: buildSeo({
+      title: "Historia wystrzelonych alertów",
+      description: "Audyt wszystkich wystrzelonych alertów dla ulubionych krypto z filtrami po symbolu i statusie (przeczytane/nieprzeczytane).",
+      path: "/historia-alertow",
+    }),
   }),
   component: HistoryPage,
 });

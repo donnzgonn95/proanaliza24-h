@@ -2,12 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { capitalFlow } from "@/lib/demo-data";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
 
+import { buildSeo } from "@/lib/seo";
+
 export const Route = createFileRoute("/przeplyw")({
   head: () => ({
-    meta: [
-      { title: "Przepływ kapitału — CryptoPuls" },
-      { name: "description", content: "Rotacja kapitału BTC → ETH → SOL → altcoiny w ostatnich 14 dniach." },
-    ],
+    meta: buildSeo({
+      title: "Przepływ kapitału BTC → ETH → SOL → alty",
+      description: "Wizualizacja rotacji kapitału między Bitcoinem, Ethereum, Solaną i altcoinami w ostatnich 14 dniach.",
+      path: "/przeplyw",
+    }),
   }),
   component: PrzeplywPage,
 });

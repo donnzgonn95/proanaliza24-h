@@ -30,12 +30,15 @@ import { QuietHoursPreview } from "@/components/QuietHoursPreview";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
+import { buildSeo } from "@/lib/seo";
+
 export const Route = createFileRoute("/ustawienia")({
   head: () => ({
-    meta: [
-      { title: "Ustawienia — CryptoPuls" },
-      { name: "description", content: "Wybierz źródło danych: Binance, CoinGecko lub CryptoCompare." },
-    ],
+    meta: buildSeo({
+      title: "Ustawienia",
+      description: "Źródło danych, godziny ciszy, limity AI, powiadomienia push i preferencje wykresu.",
+      path: "/ustawienia",
+    }),
   }),
   component: SettingsPage,
 });

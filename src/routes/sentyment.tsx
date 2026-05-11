@@ -3,12 +3,15 @@ import { sentiment } from "@/lib/demo-data";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { cn } from "@/lib/utils";
 
+import { buildSeo } from "@/lib/seo";
+
 export const Route = createFileRoute("/sentyment")({
   head: () => ({
-    meta: [
-      { title: "Sentyment rynku — CryptoPuls" },
-      { name: "description", content: "Indeks Strachu i Chciwości, dominacja BTC/ETH, kapitalizacja całego rynku krypto." },
-    ],
+    meta: buildSeo({
+      title: "Sentyment rynku krypto: Fear & Greed, dominacja BTC",
+      description: "Indeks Strachu i Chciwości, dominacja BTC/ETH, kapitalizacja całego rynku — agregat nastrojów rynkowych.",
+      path: "/sentyment",
+    }),
   }),
   component: SentymentPage,
 });
