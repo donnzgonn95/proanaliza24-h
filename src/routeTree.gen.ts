@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UstawieniaRouteImport } from './routes/ustawienia'
 import { Route as UlubioneRouteImport } from './routes/ulubione'
+import { Route as SqueezeRouteImport } from './routes/squeeze'
 import { Route as SlownikRouteImport } from './routes/slownik'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SilaRouteImport } from './routes/sila'
@@ -32,6 +33,11 @@ const UstawieniaRoute = UstawieniaRouteImport.update({
 const UlubioneRoute = UlubioneRouteImport.update({
   id: '/ulubione',
   path: '/ulubione',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SqueezeRoute = SqueezeRouteImport.update({
+  id: '/squeeze',
+  path: '/squeeze',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SlownikRoute = SlownikRouteImport.update({
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/sila': typeof SilaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/slownik': typeof SlownikRoute
+  '/squeeze': typeof SqueezeRoute
   '/ulubione': typeof UlubioneRoute
   '/ustawienia': typeof UstawieniaRoute
   '/coin/$symbol': typeof CoinSymbolRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/sila': typeof SilaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/slownik': typeof SlownikRoute
+  '/squeeze': typeof SqueezeRoute
   '/ulubione': typeof UlubioneRoute
   '/ustawienia': typeof UstawieniaRoute
   '/coin/$symbol': typeof CoinSymbolRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/sila': typeof SilaRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/slownik': typeof SlownikRoute
+  '/squeeze': typeof SqueezeRoute
   '/ulubione': typeof UlubioneRoute
   '/ustawienia': typeof UstawieniaRoute
   '/coin/$symbol': typeof CoinSymbolRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/sila'
     | '/sitemap.xml'
     | '/slownik'
+    | '/squeeze'
     | '/ulubione'
     | '/ustawienia'
     | '/coin/$symbol'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/sila'
     | '/sitemap.xml'
     | '/slownik'
+    | '/squeeze'
     | '/ulubione'
     | '/ustawienia'
     | '/coin/$symbol'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/sila'
     | '/sitemap.xml'
     | '/slownik'
+    | '/squeeze'
     | '/ulubione'
     | '/ustawienia'
     | '/coin/$symbol'
@@ -207,6 +219,7 @@ export interface RootRouteChildren {
   SilaRoute: typeof SilaRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SlownikRoute: typeof SlownikRoute
+  SqueezeRoute: typeof SqueezeRoute
   UlubioneRoute: typeof UlubioneRoute
   UstawieniaRoute: typeof UstawieniaRoute
   CoinSymbolRoute: typeof CoinSymbolRoute
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/ulubione'
       fullPath: '/ulubione'
       preLoaderRoute: typeof UlubioneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/squeeze': {
+      id: '/squeeze'
+      path: '/squeeze'
+      fullPath: '/squeeze'
+      preLoaderRoute: typeof SqueezeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/slownik': {
@@ -327,6 +347,7 @@ const rootRouteChildren: RootRouteChildren = {
   SilaRoute: SilaRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SlownikRoute: SlownikRoute,
+  SqueezeRoute: SqueezeRoute,
   UlubioneRoute: UlubioneRoute,
   UstawieniaRoute: UstawieniaRoute,
   CoinSymbolRoute: CoinSymbolRoute,
