@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
 import { useTopCoins, useCoinOHLC, useCoinVolumes } from "@/lib/top-coins";
 import { CandlestickChart, type ChartOverlay } from "@/components/CandlestickChart";
 import { RSIChart } from "@/components/RSIChart";
@@ -8,6 +8,7 @@ import { WatchlistStar } from "@/components/WatchlistStar";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { sma, ema, rsi as rsiCalc } from "@/lib/indicators";
 import { AlertTriggersPanel } from "@/components/AlertTriggersPanel";
+import { pushRecentCoin } from "@/lib/recent-coins";
 import { cn } from "@/lib/utils";
 
 const PREFS_KEY = "coin:chart-prefs:v1";
@@ -93,6 +94,25 @@ function CoinPage() {
   const setShowEMA = (fn: (v: boolean) => boolean) => setPrefs((p) => ({ ...p, showEMA: fn(p.showEMA) }));
   const setShowRSI = (fn: (v: boolean) => boolean) => setPrefs((p) => ({ ...p, showRSI: fn(p.showRSI) }));
   const setShowVolume = (fn: (v: boolean) => boolean) => setPrefs((p) => ({ ...p, showVolume: fn(p.showVolume) }));
+
+  // Track as recently viewed once per visit/symbol.
+  useEffect(() => {
+    if (sym) pushRecentCoin(sym);
+  }, [sym]);
+
+  // Sticky mini-header — appears after scrolling 280px.
+  const [showStickyHeader, setShowStickyHeader] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShowStickyHeader(window.scrollY > 280);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Indicators panel collapsed by default on mobile.
+  const [indicatorsOpen, setIndicatorsOpen] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") setIndicatorsOpen(window.innerWidth >= 768);
+  }, []);
 
   const { data: candles, isLoading: loadingChart, isError: chartError } = useCoinOHLC(coin?.id, days);
   const { data: volumes } = useCoinVolumes(coin?.id, days);
