@@ -100,12 +100,25 @@ function CoinPage() {
     if (sym) pushRecentCoin(sym);
   }, [sym]);
 
-  // Sticky mini-header — appears after scrolling 280px.
+  // Sticky mini-header — appears after scrolling and dokuje pod aktualnym <header>.
   const [showStickyHeader, setShowStickyHeader] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(64);
   useEffect(() => {
+    const headerEl = document.querySelector("header");
+    const measure = () => {
+      if (headerEl) setHeaderHeight(headerEl.getBoundingClientRect().height);
+    };
+    measure();
+    const ro = headerEl && "ResizeObserver" in window ? new ResizeObserver(measure) : null;
+    if (ro && headerEl) ro.observe(headerEl);
     const onScroll = () => setShowStickyHeader(window.scrollY > 280);
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", measure);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", measure);
+      ro?.disconnect();
+    };
   }, []);
 
   // Indicators panel collapsed by default on mobile.
@@ -136,12 +149,14 @@ function CoinPage() {
       {/* Sticky mini-header — pojawia się przy scrollu */}
       {coin && (
         <div
+          data-testid="coin-sticky-header"
+          style={{ top: headerHeight }}
           className={cn(
-            "fixed inset-x-0 top-[64px] z-40 border-b border-border bg-background/95 backdrop-blur-md transition-all duration-200",
+            "fixed inset-x-0 z-40 border-b border-border bg-background/95 backdrop-blur-md transition-all duration-200",
             showStickyHeader ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0",
           )}
         >
-          <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4">
             {coin.image && <img src={coin.image} alt="" width={24} height={24} className="h-6 w-6 rounded-full" />}
             <span className="font-bold">{coin.symbol}</span>
             <span className="num text-sm font-semibold">{formatMoney(coin.price)}</span>
