@@ -1,7 +1,15 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Command Palette", () => {
+  test.beforeEach(async ({ page, context }) => {
+    await context.clearCookies();
+    await page.addInitScript(() => {
+      try { localStorage.clear(); sessionStorage.clear(); } catch { /* noop */ }
+    });
+  });
+
   test("opens via Ctrl+K and closes via Escape", async ({ page }) => {
+
     await page.goto("/");
     await page.keyboard.press("Control+K");
     const palette = page.getByTestId("command-palette");
