@@ -80,6 +80,17 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <CoinSearch className="hidden md:block" />
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }));
+            }}
+            title="Otwórz wyszukiwarkę globalną (Ctrl/Cmd + K)"
+            aria-label="Otwórz wyszukiwarkę globalną"
+            className="hidden h-8 items-center gap-1.5 rounded-md border border-border bg-card px-2 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground lg:inline-flex"
+          >
+            <span className="num rounded border border-border bg-background px-1 text-[10px]">⌘K</span>
+          </button>
           <WatchlistMenu />
           <div
             className="hidden items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-[10px] uppercase tracking-widest text-muted-foreground sm:flex"
