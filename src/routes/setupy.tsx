@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLiveCoins } from "@/lib/binance";
-import { generateSetups } from "@/lib/signals";
+import { generateSetups, type SetupTimeframe } from "@/lib/signals";
 import { setups as demoSetups } from "@/lib/demo-data";
-import { Radio, Loader2 } from "lucide-react";
+import { Radio, Loader2, Clock } from "lucide-react";
 
 import { buildSeo } from "@/lib/seo";
 
@@ -20,12 +20,27 @@ export const Route = createFileRoute("/setupy")({
 });
 
 const filters = ["Wszystkie", "Long", "Short", "Obserwuj"] as const;
+const timeframes: SetupTimeframe[] = ["1H", "4H", "1D"];
+const TF_KEY = "setupy:timeframe:v1";
+
+function readTf(): SetupTimeframe {
+  if (typeof window === "undefined") return "4H";
+  const v = window.localStorage.getItem(TF_KEY);
+  return v === "1H" || v === "4H" || v === "1D" ? v : "4H";
+}
 
 function SetupyPage() {
   const [filter, setFilter] = useState<(typeof filters)[number]>("Wszystkie");
+  const [tf, setTf] = useState<SetupTimeframe>("4H");
   const { data: coins, isLoading, isError, dataUpdatedAt } = useLiveCoins();
 
-  const setups = coins && coins.length ? generateSetups(coins) : demoSetups;
+  // hydrate from localStorage on mount (avoids SSR mismatch)
+  useEffect(() => { setTf(readTf()); }, []);
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem(TF_KEY, tf);
+  }, [tf]);
+
+  const setups = coins && coins.length ? generateSetups(coins, tf) : demoSetups;
   const list = setups.filter((s) => filter === "Wszystkie" || s.type === filter);
   const updated = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString("pl-PL") : "";
 
@@ -36,6 +51,7 @@ function SetupyPage() {
           <h1 className="text-3xl font-bold">Panel setupów</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Generowane na żywo z rankingu siły: TOP 3 = Long, BOTTOM 2 = Short / Obserwuj.
+            Aktywny interwał: <span className="font-semibold text-foreground">{tf}</span>.
           </p>
           <div className="mt-2 flex items-center gap-2 text-xs">
             {isLoading ? (
@@ -51,19 +67,42 @@ function SetupyPage() {
             )}
           </div>
         </div>
-        <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
-          {filters.map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={cn(
-                "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
-                filter === f ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {f}
-            </button>
-          ))}
+
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Interval switcher */}
+          <div role="tablist" aria-label="Interwał" className="flex items-center gap-1 rounded-lg border border-border bg-card p-1">
+            <Clock className="ml-1 h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+            {timeframes.map((t) => (
+              <button
+                key={t}
+                role="tab"
+                aria-selected={tf === t}
+                onClick={() => setTf(t)}
+                className={cn(
+                  "num rounded-md px-2.5 py-1 text-xs font-semibold transition-colors",
+                  tf === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          {/* Type filter */}
+          <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
+            {filters.map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
+                  filter === f ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
