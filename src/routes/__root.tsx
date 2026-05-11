@@ -108,6 +108,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 import { Header } from "@/components/Header";
 import { Toaster } from "@/components/ui/sonner";
 import { useAlertNotifications } from "@/lib/notifications";
+import { CommandPalette } from "@/components/CommandPalette";
 
 function NotificationsBridge() {
   useAlertNotifications();
@@ -124,6 +125,7 @@ function RootComponent() {
         <main className="mx-auto max-w-6xl px-4 pb-24 pt-32 md:pt-24">
           <Outlet />
         </main>
+        <CommandPalette />
         <NotificationsBridge />
         <Toaster position="top-right" richColors closeButton />
       </div>
