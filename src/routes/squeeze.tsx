@@ -63,7 +63,7 @@ function SqueezePage() {
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
                 mode === m
-                  ? m === "short" ? "bg-bull text-bull-foreground" : "bg-bear text-bear-foreground"
+                  ? m === "short" ? "bg-bull/20 text-bull" : "bg-bear/20 text-bear"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
