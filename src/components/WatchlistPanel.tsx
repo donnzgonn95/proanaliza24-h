@@ -1,9 +1,14 @@
 // Renders the user's watchlist as a compact card grid. Used on the home page.
 import { Link } from "@tanstack/react-router";
-import { Star, X } from "lucide-react";
+import { Plus, Search, Star, X } from "lucide-react";
 import { useWatchlist } from "@/lib/watchlist";
 import { useTopCoins } from "@/lib/top-coins";
 import { ChangePill, formatMoney } from "@/components/StatPill";
+
+function openPalette() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }));
+}
 
 export function WatchlistPanel() {
   const { list, remove } = useWatchlist();
@@ -11,13 +16,24 @@ export function WatchlistPanel() {
 
   if (!list.length) {
     return (
-      <section className="rounded-xl border border-dashed border-border bg-card/50 p-5 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <Star className="h-4 w-4" />
-          <span>
-            Brak ulubionych. Otwórz dowolnego coina i kliknij <span className="font-semibold text-foreground">„Dodaj do ulubionych”</span>, aby
-            śledzić go tutaj i w menu.
-          </span>
+      <section
+        data-testid="watchlist-empty-card"
+        className="rounded-xl border border-dashed border-border bg-card/50 p-5"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Star className="h-4 w-4 text-warning" />
+            <span>
+              Brak ulubionych. Dodaj coina, aby szybko śledzić cenę i alerty.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={openPalette}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="h-3.5 w-3.5" /> Dodaj coina
+          </button>
         </div>
       </section>
     );
