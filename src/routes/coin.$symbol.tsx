@@ -307,3 +307,15 @@ function Stat({ label, value, sub, accent }: { label: string; value: string; sub
     </div>
   );
 }
+
+function ChartSkeleton() {
+  return (
+    <div className="space-y-2 py-2" aria-busy="true" aria-label="Ładuję wykres">
+      <div className="h-[320px] w-full animate-pulse rounded-md bg-muted/40" />
+      <div className="flex gap-2">
+        <div className="h-3 w-24 animate-pulse rounded bg-muted/40" />
+        <div className="h-3 w-16 animate-pulse rounded bg-muted/40" />
+      </div>
+    </div>
+  );
+}
