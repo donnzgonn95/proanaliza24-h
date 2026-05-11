@@ -308,34 +308,69 @@ function CoinPage() {
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <h2 className="text-lg font-bold">TradingView</h2>
-            <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <span>Symbol:</span>
-              <code data-testid="tv-resolved-symbol" className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">
-                {tvSymbol}
-              </code>
+            <div className="mt-1">
+              <TradingViewSymbolOverride
+                resolved={tvAutoSymbol}
+                override={tvSettings.symbolOverride}
+                onChange={(next) => updateTvSettings({ symbolOverride: next })}
+                onClear={() => updateTvSettings({ symbolOverride: undefined })}
+              />
             </div>
           </div>
-          <div role="tablist" aria-label="Zakres TradingView" data-testid="tv-range-switcher" className="inline-flex flex-wrap overflow-hidden rounded-md border border-border">
-            {TV_RANGE_OPTIONS.map((r) => (
-              <button
-                key={r}
-                role="tab"
-                aria-selected={tvRange === r}
-                data-testid={`tv-range-${r}`}
-                onClick={() => setTvRange(r)}
-                className={cn(
-                  "px-2.5 py-1 text-xs transition-colors",
-                  tvRange === r
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-card text-muted-foreground hover:bg-secondary hover:text-foreground",
-                )}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
+          <TradingViewRangeSwitcher value={tvRange} onChange={setTvRange} />
         </div>
-        <TradingViewChart coinSymbol={sym} height={560} range={tvRange} />
+
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <label className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span>Interwał:</span>
+            <select
+              data-testid="tv-interval"
+              value={tvSettings.interval}
+              onChange={(e) => updateTvSettings({ interval: e.target.value as typeof tvSettings.interval })}
+              className="h-7 rounded border border-border bg-background px-1.5 text-xs outline-none focus:ring-2 focus:ring-ring"
+              aria-label="Interwał świecy TradingView"
+            >
+              {TV_INTERVAL_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value} className="bg-background">
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span>Motyw:</span>
+            <div role="radiogroup" aria-label="Motyw wykresu" className="inline-flex overflow-hidden rounded border border-border">
+              {(["dark", "light"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  role="radio"
+                  aria-checked={tvSettings.theme === t}
+                  data-testid={`tv-theme-${t}`}
+                  onClick={() => updateTvSettings({ theme: t })}
+                  className={cn(
+                    "px-2 py-1 text-xs",
+                    tvSettings.theme === t
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card text-muted-foreground hover:bg-secondary hover:text-foreground",
+                  )}
+                >
+                  {t === "dark" ? "Ciemny" : "Jasny"}
+                </button>
+              ))}
+            </div>
+          </label>
+        </div>
+
+        <div id="tradingview-chart-panel" role="tabpanel" aria-labelledby={`tv-range-tab-${tvRange}`}>
+          <TradingViewChart
+            symbol={tvSymbol}
+            height={560}
+            range={tvRange}
+            interval={tvSettings.interval}
+            theme={tvSettings.theme}
+          />
+        </div>
       </section>
 
       <AlertTriggersPanel symbol={sym} currentPrice={coin?.price} />
