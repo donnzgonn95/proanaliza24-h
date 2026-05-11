@@ -59,7 +59,7 @@ export function TradingViewRangeSwitcher({
         return (
           <button
             key={r}
-            ref={(el) => (refs.current[i] = el)}
+            ref={(el) => { refs.current[i] = el; }}
             role="tab"
             type="button"
             id={`tv-range-tab-${r}`}
