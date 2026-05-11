@@ -24,16 +24,15 @@ import {
   Waves,
 } from "lucide-react";
 
+import { buildSeo } from "@/lib/seo";
+
 export const Route = createFileRoute("/likwidacja")({
   head: () => ({
-    meta: [
-      { title: "Liquidity Heatmap — CryptoPuls" },
-      {
-        name: "description",
-        content:
-          "Heatmapa likwidacji, klastry wolumenu, detektor sweepów, strefy spoofingu i nierównowaga księgi zleceń.",
-      },
-    ],
+    meta: buildSeo({
+      title: "Liquidity Heatmap: klastry, POC, ściany order booka",
+      description: "Heatmapa likwidacji, klastry wolumenu (POC), detektor sweepów, strefy spoofingu i nierównowaga księgi zleceń na świecach.",
+      path: "/likwidacja",
+    }),
   }),
   component: LiquidityPage,
 });

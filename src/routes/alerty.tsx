@@ -6,12 +6,15 @@ import { useLiveCoins } from "@/lib/binance";
 import { generateAlerts } from "@/lib/signals";
 import { alerts as demoAlerts } from "@/lib/demo-data";
 
+import { buildSeo } from "@/lib/seo";
+
 export const Route = createFileRoute("/alerty")({
   head: () => ({
-    meta: [
-      { title: "Alerty — CryptoPuls" },
-      { name: "description", content: "Alerty techniczne na żywo: wybicia, RSI, zmiana wolumenu, dominacja BTC, funding rate." },
-    ],
+    meta: buildSeo({
+      title: "Alerty techniczne na żywo",
+      description: "Wybicia, RSI ekstremalne, zmiana wolumenu, dominacja BTC, funding rate — wszystkie sygnały w jednym miejscu.",
+      path: "/alerty",
+    }),
   }),
   component: AlertyPage,
 });

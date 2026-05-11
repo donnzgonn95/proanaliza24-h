@@ -1,11 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { glossary } from "@/lib/demo-data";
+import { buildSeo, jsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/slownik")({
   head: () => ({
-    meta: [
-      { title: "Słownik tradera — CryptoPuls" },
-      { name: "description", content: "Polskie tłumaczenia angielskich pojęć tradingowych: long, short, RSI, breakout, funding rate i więcej." },
+    meta: buildSeo({
+      title: "Słownik tradera krypto po polsku",
+      description: "Polskie tłumaczenia angielskich pojęć tradingowych: long, short, RSI, breakout, funding rate, likwidacja, POC i więcej.",
+      path: "/slownik",
+    }),
+    scripts: [
+      jsonLd({
+        "@context": "https://schema.org",
+        "@type": "DefinedTermSet",
+        name: "Słownik tradera krypto",
+        inLanguage: "pl",
+        hasDefinedTerm: glossary.map((g) => ({
+          "@type": "DefinedTerm",
+          name: g.term,
+          alternateName: g.pl,
+          description: g.desc,
+        })),
+      }),
     ],
   }),
   component: SlownikPage,

@@ -25,16 +25,29 @@ function loadPrefs(): Prefs {
   }
 }
 
+import { buildSeo, jsonLd } from "@/lib/seo";
+
 export const Route = createFileRoute("/coin/$symbol")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `${params.symbol.toUpperCase()} — szczegóły kryptowaluty` },
-      {
-        name: "description",
-        content: `Szczegółowe statystyki, świece OHLC, SMA/EMA, RSI i wolumen dla ${params.symbol.toUpperCase()}.`,
-      },
-    ],
-  }),
+  head: ({ params }) => {
+    const sym = params.symbol.toUpperCase();
+    return {
+      meta: buildSeo({
+        title: `${sym} — cena, wykres świecowy, RSI`,
+        description: `Szczegółowe statystyki ${sym}: świece OHLC, SMA/EMA, RSI 14, wolumen, alerty cenowe i analiza AI. Dane z CoinGecko / Binance.`,
+        path: `/coin/${sym}`,
+        type: "article",
+      }),
+      scripts: [
+        jsonLd({
+          "@context": "https://schema.org",
+          "@type": "FinancialProduct",
+          name: sym,
+          category: "Cryptocurrency",
+          description: `Wykres, wskaźniki techniczne i alerty dla ${sym}.`,
+        }),
+      ],
+    };
+  },
   component: CoinPage,
   errorComponent: ({ error }) => (
     <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">

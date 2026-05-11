@@ -6,12 +6,15 @@ import { ChangePill, formatMoney } from "@/components/StatPill";
 import { cn } from "@/lib/utils";
 import { Radio, Settings } from "lucide-react";
 
+import { buildSeo } from "@/lib/seo";
+
 export const Route = createFileRoute("/sila")({
   head: () => ({
-    meta: [
-      { title: "Ranking siły kryptowalut — CryptoPuls" },
-      { name: "description", content: "Ranking siły relatywnej krypto: które monety przewodzą, a które słabną." },
-    ],
+    meta: buildSeo({
+      title: "Ranking siły top 100 krypto",
+      description: "Siła relatywna top 100 kryptowalut — które monety przewodzą rynkowi, a które tracą momentum w 24h i 7 dniach.",
+      path: "/sila",
+    }),
   }),
   component: SilaPage,
 });

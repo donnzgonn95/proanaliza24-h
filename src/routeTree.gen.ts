@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UstawieniaRouteImport } from './routes/ustawienia'
 import { Route as SlownikRouteImport } from './routes/slownik'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SilaRouteImport } from './routes/sila'
 import { Route as SetupyRouteImport } from './routes/setupy'
 import { Route as SentymentRouteImport } from './routes/sentyment'
@@ -30,6 +31,11 @@ const UstawieniaRoute = UstawieniaRouteImport.update({
 const SlownikRoute = SlownikRouteImport.update({
   id: '/slownik',
   path: '/slownik',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SilaRoute = SilaRouteImport.update({
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/sentyment': typeof SentymentRoute
   '/setupy': typeof SetupyRoute
   '/sila': typeof SilaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/slownik': typeof SlownikRoute
   '/ustawienia': typeof UstawieniaRoute
   '/coin/$symbol': typeof CoinSymbolRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/sentyment': typeof SentymentRoute
   '/setupy': typeof SetupyRoute
   '/sila': typeof SilaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/slownik': typeof SlownikRoute
   '/ustawienia': typeof UstawieniaRoute
   '/coin/$symbol': typeof CoinSymbolRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/sentyment': typeof SentymentRoute
   '/setupy': typeof SetupyRoute
   '/sila': typeof SilaRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/slownik': typeof SlownikRoute
   '/ustawienia': typeof UstawieniaRoute
   '/coin/$symbol': typeof CoinSymbolRoute
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/sentyment'
     | '/setupy'
     | '/sila'
+    | '/sitemap.xml'
     | '/slownik'
     | '/ustawienia'
     | '/coin/$symbol'
@@ -152,6 +162,7 @@ export interface FileRouteTypes {
     | '/sentyment'
     | '/setupy'
     | '/sila'
+    | '/sitemap.xml'
     | '/slownik'
     | '/ustawienia'
     | '/coin/$symbol'
@@ -166,6 +177,7 @@ export interface FileRouteTypes {
     | '/sentyment'
     | '/setupy'
     | '/sila'
+    | '/sitemap.xml'
     | '/slownik'
     | '/ustawienia'
     | '/coin/$symbol'
@@ -181,6 +193,7 @@ export interface RootRouteChildren {
   SentymentRoute: typeof SentymentRoute
   SetupyRoute: typeof SetupyRoute
   SilaRoute: typeof SilaRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SlownikRoute: typeof SlownikRoute
   UstawieniaRoute: typeof UstawieniaRoute
   CoinSymbolRoute: typeof CoinSymbolRoute
@@ -200,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/slownik'
       fullPath: '/slownik'
       preLoaderRoute: typeof SlownikRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sila': {
@@ -285,6 +305,7 @@ const rootRouteChildren: RootRouteChildren = {
   SentymentRoute: SentymentRoute,
   SetupyRoute: SetupyRoute,
   SilaRoute: SilaRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   SlownikRoute: SlownikRoute,
   UstawieniaRoute: UstawieniaRoute,
   CoinSymbolRoute: CoinSymbolRoute,

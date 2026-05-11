@@ -11,12 +11,15 @@ import { WatchlistPanel } from "@/components/WatchlistPanel";
 import { ArrowRight, Radio, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { buildSeo } from "@/lib/seo";
+
 export const Route = createFileRoute("/")({
   head: () => ({
-    meta: [
-      { title: "Co robić teraz? — CryptoPuls" },
-      { name: "description", content: "Tryb prosty: jednoznaczna rekomendacja co robić na rynku krypto teraz, oparta o sentyment i siłę relatywną." },
-    ],
+    meta: buildSeo({
+      title: "Co robić teraz na rynku krypto?",
+      description: "Polski monitor sentymentu, siły relatywnej top 100 krypto, watchlista, alerty cenowe i AI asystent — jednoznaczna rekomendacja co robić teraz.",
+      path: "/",
+    }),
   }),
   component: Index,
 });

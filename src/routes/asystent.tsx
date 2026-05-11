@@ -30,12 +30,15 @@ import {
   type Conversation,
 } from "@/lib/chat-history";
 
+import { buildSeo } from "@/lib/seo";
+
 export const Route = createFileRoute("/asystent")({
   head: () => ({
-    meta: [
-      { title: "Asystent AI — analiza rynku, alerty, raport" },
-      { name: "description", content: "Analiza LLM, podsumowanie alertów, chat-asystent rynkowy, raport inwestorski. Wybór modelu, historia rozmów, limity i koszty." },
-    ],
+    meta: buildSeo({
+      title: "AI Asystent rynku krypto",
+      description: "Chat z asystentem AI, podsumowanie alertów i raport inwestorski. Wybór modelu (Gemini/GPT-5), historia rozmów, limity i koszty.",
+      path: "/asystent",
+    }),
   }),
   component: AsystentPage,
 });
