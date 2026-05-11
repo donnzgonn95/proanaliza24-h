@@ -15,6 +15,7 @@ import {
   Settings,
   Sparkles,
   Target,
+  Flame,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLiveCoins } from "@/lib/binance";
@@ -28,6 +29,7 @@ const nav = [
   { to: "/przeplyw", label: "Przepływ", icon: ArrowLeftRight },
   { to: "/sila", label: "Siła", icon: BarChart3 },
   { to: "/setupy", label: "Setupy", icon: Target },
+  { to: "/squeeze", label: "Squeeze", icon: Flame },
   { to: "/alerty", label: "Alerty", icon: Bell },
   { to: "/historia-alertow", label: "Historia", icon: Bell },
   { to: "/likwidacja", label: "Płynność", icon: Droplets },
