@@ -8,6 +8,7 @@ import { WatchlistStar } from "@/components/WatchlistStar";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { sma, ema, rsi as rsiCalc } from "@/lib/indicators";
 import { AlertTriggersPanel } from "@/components/AlertTriggersPanel";
+import { TradingViewChart } from "@/components/TradingViewChart";
 import { pushRecentCoin } from "@/lib/recent-coins";
 import { cn } from "@/lib/utils";
 
@@ -278,6 +279,15 @@ function CoinPage() {
         <p className="mt-3 text-[11px] text-muted-foreground">
           Dane: CoinGecko OHLC + market_chart. Wskaźniki SMA/EMA/RSI obliczane lokalnie z zamknięć świec — nie generują dodatkowych zapytań do API.
         </p>
+      </section>
+
+      {/* TradingView Advanced Chart — interaktywny wykres dla pary BINANCE:{SYM}USDT */}
+      <section className="rounded-xl border border-border bg-card p-5" aria-label="Wykres TradingView">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-bold">TradingView · {sym}/USDT</h2>
+          <span className="text-[11px] text-muted-foreground">Pełen zestaw narzędzi: rysowanie, wskaźniki, porównania.</span>
+        </div>
+        <TradingViewChart coinSymbol={sym} height={560} range="3M" />
       </section>
 
       <AlertTriggersPanel symbol={sym} currentPrice={coin?.price} />
