@@ -16,8 +16,19 @@ function priceDp(p: number) {
   return 5;
 }
 
-export function generateSetups(coins: Coin[]): Setup[] {
+export type SetupTimeframe = "1H" | "4H" | "1D";
+
+// Per-timeframe scaling: shorter TF = ciaśniejsze SL/TP, niższy R:R potencjał;
+// dłuższy TF = większe ruchy, wyższe R:R.
+const TF_SCALE: Record<SetupTimeframe, { slMul: number; tpBase: number; tpRange: number; longTf: SetupTimeframe; shortTf: SetupTimeframe }> = {
+  "1H": { slMul: 0.55, tpBase: 0.035, tpRange: 0.06,  longTf: "1H", shortTf: "1H" },
+  "4H": { slMul: 1.0,  tpBase: 0.08,  tpRange: 0.12,  longTf: "4H", shortTf: "1D" },
+  "1D": { slMul: 1.6,  tpBase: 0.14,  tpRange: 0.18,  longTf: "1D", shortTf: "1D" },
+};
+
+export function generateSetups(coins: Coin[], timeframe: SetupTimeframe = "4H"): Setup[] {
   if (!coins.length) return [];
+  const tf = TF_SCALE[timeframe];
   const sorted = [...coins].sort((a, b) => b.strength - a.strength);
   const top = sorted.slice(0, 3);
   const bottom = sorted.slice(-2).reverse();
@@ -26,13 +37,12 @@ export function generateSetups(coins: Coin[]): Setup[] {
 
   for (const c of top) {
     const dp = priceDp(c.price);
-    // Long: SL ~4-5% below, TP ~12-15% above based on strength
-    const slPct = c.rsi > 70 ? 0.045 : 0.05;
-    const tpPct = 0.08 + (c.strength / 100) * 0.12; // 8% – 20%
+    const slPct = (c.rsi > 70 ? 0.045 : 0.05) * tf.slMul;
+    const tpPct = tf.tpBase + (c.strength / 100) * tf.tpRange;
     const sl = round(c.price * (1 - slPct), dp);
     const tp = round(c.price * (1 + tpPct), dp);
     const rr = (tp - c.price) / (c.price - sl);
-    const confidence = Math.min(95, Math.round(c.strength * 0.85 + (c.change24h > 0 ? 8 : 0)));
+    const confidence = Math.min(95, Math.round(c.strength * 0.85 + (c.change24h > 0 ? 8 : 0) - (timeframe === "1H" ? 5 : 0)));
     const reason =
       c.change7d > 5
         ? `Silny trend 7D (+${c.change7d.toFixed(1)}%), momentum 24h ${c.change24h.toFixed(1)}%, RSI ${c.rsi}.`
@@ -46,18 +56,18 @@ export function generateSetups(coins: Coin[]): Setup[] {
       riskReward: round(rr, 1),
       confidence,
       reason: c.rsi > 75 ? `Wykupienie (RSI ${c.rsi}). ${reason} Czekaj na korektę do EMA20.` : reason,
-      timeframe: "4H",
+      timeframe: tf.longTf,
     });
   }
 
   for (const c of bottom) {
     const dp = priceDp(c.price);
-    const slPct = 0.05;
-    const tpPct = 0.1 + ((100 - c.strength) / 100) * 0.08;
+    const slPct = 0.05 * tf.slMul;
+    const tpPct = (tf.tpBase + ((100 - c.strength) / 100) * (tf.tpRange * 0.7));
     const sl = round(c.price * (1 + slPct), dp);
     const tp = round(c.price * (1 - tpPct), dp);
     const rr = (c.price - tp) / (sl - c.price);
-    const confidence = Math.min(85, Math.round((100 - c.strength) * 0.7 + (c.change24h < 0 ? 8 : 0)));
+    const confidence = Math.min(85, Math.round((100 - c.strength) * 0.7 + (c.change24h < 0 ? 8 : 0) - (timeframe === "1H" ? 5 : 0)));
     const isWeakEnough = c.change7d < -2 || c.rsi < 40;
     setups.push({
       symbol: c.symbol,
@@ -70,7 +80,7 @@ export function generateSetups(coins: Coin[]): Setup[] {
       reason: isWeakEnough
         ? `Najsłabsza relatywnie (${c.change7d.toFixed(1)}% 7D), RSI ${c.rsi}, brak popytu.`
         : `Słabość względna, ale brak potwierdzenia spadku — czekaj na pęknięcie wsparcia.`,
-      timeframe: "1D",
+      timeframe: tf.shortTf,
     });
   }
 
