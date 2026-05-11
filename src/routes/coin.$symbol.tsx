@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
 import { useTopCoins, useCoinOHLC, useCoinVolumes } from "@/lib/top-coins";
 import { CandlestickChart, type ChartOverlay } from "@/components/CandlestickChart";
 import { RSIChart } from "@/components/RSIChart";
@@ -8,6 +8,7 @@ import { WatchlistStar } from "@/components/WatchlistStar";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { sma, ema, rsi as rsiCalc } from "@/lib/indicators";
 import { AlertTriggersPanel } from "@/components/AlertTriggersPanel";
+import { pushRecentCoin } from "@/lib/recent-coins";
 import { cn } from "@/lib/utils";
 
 const PREFS_KEY = "coin:chart-prefs:v1";
@@ -94,6 +95,25 @@ function CoinPage() {
   const setShowRSI = (fn: (v: boolean) => boolean) => setPrefs((p) => ({ ...p, showRSI: fn(p.showRSI) }));
   const setShowVolume = (fn: (v: boolean) => boolean) => setPrefs((p) => ({ ...p, showVolume: fn(p.showVolume) }));
 
+  // Track as recently viewed once per visit/symbol.
+  useEffect(() => {
+    if (sym) pushRecentCoin(sym);
+  }, [sym]);
+
+  // Sticky mini-header — appears after scrolling 280px.
+  const [showStickyHeader, setShowStickyHeader] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShowStickyHeader(window.scrollY > 280);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Indicators panel collapsed by default on mobile.
+  const [indicatorsOpen, setIndicatorsOpen] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") setIndicatorsOpen(window.innerWidth >= 768);
+  }, []);
+
   const { data: candles, isLoading: loadingChart, isError: chartError } = useCoinOHLC(coin?.id, days);
   const { data: volumes } = useCoinVolumes(coin?.id, days);
 
@@ -113,6 +133,24 @@ function CoinPage() {
 
   return (
     <div className="space-y-6">
+      {/* Sticky mini-header — pojawia się przy scrollu */}
+      {coin && (
+        <div
+          className={cn(
+            "fixed inset-x-0 top-[64px] z-40 border-b border-border bg-background/95 backdrop-blur-md transition-all duration-200",
+            showStickyHeader ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0",
+          )}
+        >
+          <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2">
+            {coin.image && <img src={coin.image} alt="" width={24} height={24} className="h-6 w-6 rounded-full" />}
+            <span className="font-bold">{coin.symbol}</span>
+            <span className="num text-sm font-semibold">{formatMoney(coin.price)}</span>
+            <ChangePill value={coin.change24h} />
+            <div className="ml-auto"><WatchlistStar symbol={sym} /></div>
+          </div>
+        </div>
+      )}
+
       <div>
         <Link to="/" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-3 w-3" /> Powrót
@@ -120,7 +158,7 @@ function CoinPage() {
       </div>
 
       {/* Header */}
-      <section className="rounded-xl border border-border bg-card p-5">
+      <header className="rounded-xl border border-border bg-card p-5">
         <div className="flex flex-wrap items-center gap-4">
           {coin?.image && <img src={coin.image} alt={coin.name} width={48} height={48} className="h-12 w-12 rounded-full" />}
           <div className="min-w-0 flex-1">
@@ -141,11 +179,11 @@ function CoinPage() {
           </div>
           <WatchlistStar symbol={sym} />
         </div>
-      </section>
+      </header>
 
       {/* Stats grid */}
       {coin && (
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Statystyki">
           <Stat label="Kapitalizacja" value={formatMoney(coin.marketCap)} />
           <Stat label="Wolumen 24h" value={formatMoney(coin.volume24h)} />
           <Stat label="Zmiana 7D" value={`${coin.change7d > 0 ? "+" : ""}${coin.change7d.toFixed(2)}%`} accent={coin.change7d >= 0 ? "bull" : "bear"} />
@@ -158,31 +196,52 @@ function CoinPage() {
       )}
 
       {/* Candlestick chart + controls */}
-      <section className="rounded-xl border border-border bg-card p-5">
+      <section className="rounded-xl border border-border bg-card p-5" aria-label="Wykres świecowy">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-bold">Mapa świec (Candlestick)</h2>
-          <div className="flex flex-wrap items-center gap-2">
-            <Toggle active={showSMA} onClick={() => setShowSMA((v) => !v)} dot="#3b82f6">SMA 20</Toggle>
-            <Toggle active={showEMA} onClick={() => setShowEMA((v) => !v)} dot="#f59e0b">EMA 50</Toggle>
-            <Toggle active={showVolume} onClick={() => setShowVolume((v) => !v)}>Wolumen</Toggle>
-            <Toggle active={showRSI} onClick={() => setShowRSI((v) => !v)} dot="#a855f7">RSI 14</Toggle>
+          {/* Segmented control for ranges */}
+          <div role="tablist" aria-label="Zakres czasu" className="inline-flex overflow-hidden rounded-md border border-border">
+            {RANGES.map((r) => (
+              <button
+                key={r.days}
+                role="tab"
+                aria-selected={days === r.days}
+                onClick={() => setDays(r.days)}
+                className={cn(
+                  "px-3 py-1 text-xs transition-colors",
+                  days === r.days
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-card text-muted-foreground hover:bg-secondary hover:text-foreground",
+                )}
+              >
+                {r.label}
+              </button>
+            ))}
           </div>
         </div>
-        <div className="mb-3 flex flex-wrap gap-1">
-          {RANGES.map((r) => (
-            <button
-              key={r.days}
-              onClick={() => setDays(r.days)}
-              className={cn(
-                "rounded-md border border-border px-3 py-1 text-xs",
-                days === r.days ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {r.label}
-            </button>
-          ))}
+
+        {/* Indicators panel — collapsible (zwinięte na mobile) */}
+        <div className="mb-3 overflow-hidden rounded-md border border-border">
+          <button
+            type="button"
+            onClick={() => setIndicatorsOpen((v) => !v)}
+            aria-expanded={indicatorsOpen}
+            className="flex w-full items-center justify-between bg-card/60 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            <span>Wskaźniki techniczne</span>
+            {indicatorsOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+          </button>
+          {indicatorsOpen && (
+            <div className="flex flex-wrap items-center gap-2 border-t border-border bg-background/40 p-3">
+              <Toggle active={showSMA} onClick={() => setShowSMA((v) => !v)} dot="#3b82f6">SMA 20</Toggle>
+              <Toggle active={showEMA} onClick={() => setShowEMA((v) => !v)} dot="#f59e0b">EMA 50</Toggle>
+              <Toggle active={showVolume} onClick={() => setShowVolume((v) => !v)}>Wolumen</Toggle>
+              <Toggle active={showRSI} onClick={() => setShowRSI((v) => !v)} dot="#a855f7">RSI 14</Toggle>
+            </div>
+          )}
         </div>
-        {loadingChart && <div className="py-12 text-center text-sm text-muted-foreground">Ładuję dane świec…</div>}
+
+        {loadingChart && <ChartSkeleton />}
         {chartError && <div className="py-12 text-center text-sm text-bear">Nie udało się pobrać danych OHLC.</div>}
         {candles && candles.length > 0 && (
           <CandlestickChart data={candles} overlays={overlays} volumes={showVolume ? volumes : undefined} />
@@ -245,6 +304,18 @@ function Stat({ label, value, sub, accent }: { label: string; value: string; sub
         {value}
       </div>
       {sub && <div className="mt-1 text-xs text-muted-foreground">{sub}</div>}
+    </div>
+  );
+}
+
+function ChartSkeleton() {
+  return (
+    <div className="space-y-2 py-2" aria-busy="true" aria-label="Ładuję wykres">
+      <div className="h-[320px] w-full animate-pulse rounded-md bg-muted/40" />
+      <div className="flex gap-2">
+        <div className="h-3 w-24 animate-pulse rounded bg-muted/40" />
+        <div className="h-3 w-16 animate-pulse rounded bg-muted/40" />
+      </div>
     </div>
   );
 }
