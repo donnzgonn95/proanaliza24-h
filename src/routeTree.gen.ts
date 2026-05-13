@@ -18,12 +18,15 @@ import { Route as SilaRouteImport } from './routes/sila'
 import { Route as SetupyRouteImport } from './routes/setupy'
 import { Route as SentymentRouteImport } from './routes/sentyment'
 import { Route as PrzeplywRouteImport } from './routes/przeplyw'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LikwidacjaRouteImport } from './routes/likwidacja'
 import { Route as HistoriaAlertowRouteImport } from './routes/historia-alertow'
 import { Route as AsystentRouteImport } from './routes/asystent'
 import { Route as AlertyRouteImport } from './routes/alerty'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CoinSymbolRouteImport } from './routes/coin.$symbol'
+import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const UstawieniaRoute = UstawieniaRouteImport.update({
   id: '/ustawienia',
@@ -70,6 +73,11 @@ const PrzeplywRoute = PrzeplywRouteImport.update({
   path: '/przeplyw',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LikwidacjaRoute = LikwidacjaRouteImport.update({
   id: '/likwidacja',
   path: '/likwidacja',
@@ -100,6 +108,17 @@ const CoinSymbolRoute = CoinSymbolRouteImport.update({
   path: '/coin/$symbol',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
+  id: '/checkout/return',
+  path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -107,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/asystent': typeof AsystentRoute
   '/historia-alertow': typeof HistoriaAlertowRoute
   '/likwidacja': typeof LikwidacjaRoute
+  '/pricing': typeof PricingRoute
   '/przeplyw': typeof PrzeplywRoute
   '/sentyment': typeof SentymentRoute
   '/setupy': typeof SetupyRoute
@@ -116,7 +136,9 @@ export interface FileRoutesByFullPath {
   '/squeeze': typeof SqueezeRoute
   '/ulubione': typeof UlubioneRoute
   '/ustawienia': typeof UstawieniaRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/coin/$symbol': typeof CoinSymbolRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -124,6 +146,7 @@ export interface FileRoutesByTo {
   '/asystent': typeof AsystentRoute
   '/historia-alertow': typeof HistoriaAlertowRoute
   '/likwidacja': typeof LikwidacjaRoute
+  '/pricing': typeof PricingRoute
   '/przeplyw': typeof PrzeplywRoute
   '/sentyment': typeof SentymentRoute
   '/setupy': typeof SetupyRoute
@@ -133,7 +156,9 @@ export interface FileRoutesByTo {
   '/squeeze': typeof SqueezeRoute
   '/ulubione': typeof UlubioneRoute
   '/ustawienia': typeof UstawieniaRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/coin/$symbol': typeof CoinSymbolRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -142,6 +167,7 @@ export interface FileRoutesById {
   '/asystent': typeof AsystentRoute
   '/historia-alertow': typeof HistoriaAlertowRoute
   '/likwidacja': typeof LikwidacjaRoute
+  '/pricing': typeof PricingRoute
   '/przeplyw': typeof PrzeplywRoute
   '/sentyment': typeof SentymentRoute
   '/setupy': typeof SetupyRoute
@@ -151,7 +177,9 @@ export interface FileRoutesById {
   '/squeeze': typeof SqueezeRoute
   '/ulubione': typeof UlubioneRoute
   '/ustawienia': typeof UstawieniaRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/coin/$symbol': typeof CoinSymbolRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +189,7 @@ export interface FileRouteTypes {
     | '/asystent'
     | '/historia-alertow'
     | '/likwidacja'
+    | '/pricing'
     | '/przeplyw'
     | '/sentyment'
     | '/setupy'
@@ -170,7 +199,9 @@ export interface FileRouteTypes {
     | '/squeeze'
     | '/ulubione'
     | '/ustawienia'
+    | '/checkout/return'
     | '/coin/$symbol'
+    | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -178,6 +209,7 @@ export interface FileRouteTypes {
     | '/asystent'
     | '/historia-alertow'
     | '/likwidacja'
+    | '/pricing'
     | '/przeplyw'
     | '/sentyment'
     | '/setupy'
@@ -187,7 +219,9 @@ export interface FileRouteTypes {
     | '/squeeze'
     | '/ulubione'
     | '/ustawienia'
+    | '/checkout/return'
     | '/coin/$symbol'
+    | '/api/public/payments/webhook'
   id:
     | '__root__'
     | '/'
@@ -195,6 +229,7 @@ export interface FileRouteTypes {
     | '/asystent'
     | '/historia-alertow'
     | '/likwidacja'
+    | '/pricing'
     | '/przeplyw'
     | '/sentyment'
     | '/setupy'
@@ -204,7 +239,9 @@ export interface FileRouteTypes {
     | '/squeeze'
     | '/ulubione'
     | '/ustawienia'
+    | '/checkout/return'
     | '/coin/$symbol'
+    | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -213,6 +250,7 @@ export interface RootRouteChildren {
   AsystentRoute: typeof AsystentRoute
   HistoriaAlertowRoute: typeof HistoriaAlertowRoute
   LikwidacjaRoute: typeof LikwidacjaRoute
+  PricingRoute: typeof PricingRoute
   PrzeplywRoute: typeof PrzeplywRoute
   SentymentRoute: typeof SentymentRoute
   SetupyRoute: typeof SetupyRoute
@@ -222,7 +260,9 @@ export interface RootRouteChildren {
   SqueezeRoute: typeof SqueezeRoute
   UlubioneRoute: typeof UlubioneRoute
   UstawieniaRoute: typeof UstawieniaRoute
+  CheckoutReturnRoute: typeof CheckoutReturnRoute
   CoinSymbolRoute: typeof CoinSymbolRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -290,6 +330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrzeplywRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/likwidacja': {
       id: '/likwidacja'
       path: '/likwidacja'
@@ -332,6 +379,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoinSymbolRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout/return': {
+      id: '/checkout/return'
+      path: '/checkout/return'
+      fullPath: '/checkout/return'
+      preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -341,6 +402,7 @@ const rootRouteChildren: RootRouteChildren = {
   AsystentRoute: AsystentRoute,
   HistoriaAlertowRoute: HistoriaAlertowRoute,
   LikwidacjaRoute: LikwidacjaRoute,
+  PricingRoute: PricingRoute,
   PrzeplywRoute: PrzeplywRoute,
   SentymentRoute: SentymentRoute,
   SetupyRoute: SetupyRoute,
@@ -350,7 +412,9 @@ const rootRouteChildren: RootRouteChildren = {
   SqueezeRoute: SqueezeRoute,
   UlubioneRoute: UlubioneRoute,
   UstawieniaRoute: UstawieniaRoute,
+  CheckoutReturnRoute: CheckoutReturnRoute,
   CoinSymbolRoute: CoinSymbolRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

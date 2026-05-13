@@ -31,9 +31,11 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       mode: isRecurring ? "subscription" : "payment",
       ui_mode: "embedded_page",
       return_url: data.returnUrl,
-      managed_payments: { enabled: true },
       ...(data.customerEmail && { customer_email: data.customerEmail }),
-    });
+      // Stripe end-to-end compliance handling (tax, fraud, disputes, support).
+      // Not yet typed in the pinned SDK; safe per managed_payments docs.
+      managed_payments: { enabled: true },
+    } as Stripe.Checkout.SessionCreateParams);
 
     return session.client_secret;
   });
