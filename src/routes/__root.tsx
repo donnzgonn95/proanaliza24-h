@@ -110,6 +110,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { useAlertNotifications } from "@/lib/notifications";
 import { CommandPalette } from "@/components/CommandPalette";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 function NotificationsBridge() {
   useAlertNotifications();
@@ -122,6 +123,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen bg-background">
+        <PaymentTestModeBanner />
         <Header />
         <main className="mx-auto max-w-6xl px-4 pb-32 pt-32 md:pb-24 md:pt-24">
           <Outlet />
