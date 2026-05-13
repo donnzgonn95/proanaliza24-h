@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import type Stripe from "stripe";
 import { type StripeEnv, createStripeClient } from "@/lib/stripe.server";
 
 export const createCheckoutSession = createServerFn({ method: "POST" })
