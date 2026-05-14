@@ -43,6 +43,7 @@ export const Route = createFileRoute("/coin/$symbol")({
         path: `/coin/${sym}`,
         type: "article",
       }),
+      links: [{ rel: "canonical", href: `https://dosprawdzenioappjasnyl.lovable.app/coin/${sym}` }],
       scripts: [
         jsonLd({
           "@context": "https://schema.org",
