@@ -6,7 +6,7 @@ import { generateSetups, type SetupTimeframe } from "@/lib/signals";
 import { setups as demoSetups } from "@/lib/demo-data";
 import { Radio, Loader2, Clock } from "lucide-react";
 
-import { buildSeo, seoLinks } from "@/lib/seo";
+import { buildSeo, seoLinks, jsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/setupy")({
   head: () => ({
@@ -16,6 +16,15 @@ export const Route = createFileRoute("/setupy")({
       path: "/setupy",
     }),
     links: seoLinks("/setupy"),
+    scripts: [
+      jsonLd({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "Setupy tradingowe",
+        description: "Lista setupów long/short/obserwuj generowanych z danych live.",
+        url: "https://dosprawdzenioappjasnyl.lovable.app/setupy",
+      }),
+    ],
   }),
   component: SetupyPage,
 });

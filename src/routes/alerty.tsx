@@ -6,7 +6,7 @@ import { useLiveCoins } from "@/lib/binance";
 import { generateAlerts } from "@/lib/signals";
 import { alerts as demoAlerts } from "@/lib/demo-data";
 
-import { buildSeo, seoLinks } from "@/lib/seo";
+import { buildSeo, seoLinks, jsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/alerty")({
   head: () => ({
@@ -16,6 +16,15 @@ export const Route = createFileRoute("/alerty")({
       path: "/alerty",
     }),
     links: seoLinks("/alerty"),
+    scripts: [
+      jsonLd({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "Alerty techniczne",
+        description: "Lista alertów: wybicia, RSI, wolumen, funding rate.",
+        url: "https://dosprawdzenioappjasnyl.lovable.app/alerty",
+      }),
+    ],
   }),
   component: AlertyPage,
 });
