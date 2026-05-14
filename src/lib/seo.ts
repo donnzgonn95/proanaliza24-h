@@ -4,9 +4,10 @@
  * tylko gdy nie ustawione — więc zawsze dostarczamy komplet.
  */
 export const SITE_NAME = "CryptoPuls";
-export const SITE_URL = "https://cryptopuls.lovable.app";
+export const SITE_URL = "https://dosprawdzenioappjasnyl.lovable.app";
 
 type SeoMeta = Array<Record<string, string>>;
+type SeoLinks = Array<Record<string, string>>;
 
 export function buildSeo(opts: {
   title: string;
@@ -34,6 +35,12 @@ export function buildSeo(opts: {
     meta.push({ name: "twitter:image", content: opts.image });
   }
   return meta;
+}
+
+/** Self-referencing canonical for a given route path. Use in `links` of each leaf route. */
+export function seoLinks(path: string): SeoLinks {
+  const href = `${SITE_URL}${path}`;
+  return [{ rel: "canonical", href }];
 }
 
 /** JSON-LD helper — zwraca obiekt do sekcji `scripts` w head(). */
