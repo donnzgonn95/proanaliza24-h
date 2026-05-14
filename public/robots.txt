@@ -4,3 +4,4 @@ Disallow: /ustawieniaUser-agent: *
 Allow: /
 
 Sitemap: https://dosprawdzenioappjasnyl.lovable.app/sitemap.xml
+Disallow: /historia-alertow
