@@ -44,6 +44,7 @@ const nav = [
 
 export function Header() {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const qc = useQueryClient();
   const { data, isFetching, isError, dataUpdatedAt } = useLiveCoins();
@@ -98,6 +99,7 @@ export function Header() {
             <span className="num rounded border border-border bg-background px-1 text-[10px]">⌘K</span>
           </button>
           <WatchlistMenu />
+          <LanguageSwitcher compact />
           <div
             className="hidden items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-[10px] uppercase tracking-widest text-muted-foreground sm:flex"
             title={`Ostatnia aktualizacja: ${updated}`}
@@ -143,7 +145,7 @@ export function Header() {
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                   )}
                 >
-                  {n.label}
+                  {t(n.labelKey)}
                 </Link>
               );
             })}
@@ -167,7 +169,7 @@ export function Header() {
                   )}
                 >
                   <Icon className="h-4 w-4" />
-                  {n.label}
+                  {t(n.labelKey)}
                 </Link>
               );
             })}
