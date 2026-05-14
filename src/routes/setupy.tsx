@@ -55,7 +55,30 @@ function SetupyPage() {
   const updated = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString("pl-PL") : "";
 
   return (
-    <div className="space-y-6">
+    <>
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "Setupy tradingowe - CryptoPuls",
+        description:
+          "Lista setupów tradingowych long, short i obserwuj generowanych z danych rynkowych.",
+        url: "https://dosprawdzenioappjasnyl.lovable.app/setupy",
+        isPartOf: {
+          "@type": "WebApplication",
+          name: "CryptoPuls",
+          url: "https://dosprawdzenioappjasnyl.lovable.app",
+        },
+      }),
+    }}
+  />
+    return (
+      <>
+      <script .../>
+      
+        <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold">Panel setupów</h1>
@@ -192,6 +215,6 @@ function Cell({ label, value, tone }: { label: string; value: string; tone?: "bu
         tone === "bull" && "text-bull",
         tone === "bear" && "text-bear",
       )}>{value}</div>
-    </div>
-  );
-}
+  </div>
+  </>
+);
