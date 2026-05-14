@@ -5,3 +5,5 @@ Allow: /
 
 Sitemap: https://dosprawdzenioappjasnyl.lovable.app/sitemap.xml
 Disallow: /historia-alertow
+
+Sitemap: https://dosprawdzenioappjasnyl.lovable.app/sitemap.xml
