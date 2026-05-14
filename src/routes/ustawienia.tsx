@@ -31,6 +31,8 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 import { buildSeo, seoLinks } from "@/lib/seo";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export const Route = createFileRoute("/ustawienia")({
   head: () => ({
@@ -64,15 +66,26 @@ const META: Record<DataSource, { desc: string; pros: string; klines: boolean }> 
 
 function SettingsPage() {
   const source = useDataSource();
+  const { t } = useTranslation();
 
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-3xl font-bold">Ustawienia</h1>
+        <h1 className="text-3xl font-bold">{t("settings.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Wybierz źródło danych rynkowych. Wybór zapisuje się lokalnie w przeglądarce.
         </p>
       </header>
+
+      <section className="space-y-3" aria-labelledby="lang-heading">
+        <h2 id="lang-heading" className="text-xs uppercase tracking-widest text-muted-foreground">
+          {t("settings.language.heading")}
+        </h2>
+        <div className="rounded-xl border border-border bg-card p-5">
+          <p className="mb-3 text-sm text-muted-foreground">{t("settings.language.desc")}</p>
+          <LanguageSwitcher />
+        </div>
+      </section>
 
       <section className="space-y-3">
         <h2 className="text-xs uppercase tracking-widest text-muted-foreground">Źródło danych</h2>
