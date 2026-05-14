@@ -10,7 +10,7 @@ import {
 } from "@/lib/notifications";
 import { useWatchlist } from "@/lib/watchlist";
 
-import { buildSeo } from "@/lib/seo";
+import { buildSeo, seoLinks } from "@/lib/seo";
 
 export const Route = createFileRoute("/historia-alertow")({
   head: () => ({
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/historia-alertow")({
       description: "Audyt wszystkich wystrzelonych alertów dla ulubionych krypto z filtrami po symbolu i statusie (przeczytane/nieprzeczytane).",
       path: "/historia-alertow",
     }),
+    links: seoLinks("/historia-alertow"),
   }),
   component: HistoryPage,
 });

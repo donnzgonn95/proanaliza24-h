@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { glossary } from "@/lib/demo-data";
-import { buildSeo, jsonLd } from "@/lib/seo";
+import { buildSeo, jsonLd, seoLinks } from "@/lib/seo";
 
 export const Route = createFileRoute("/slownik")({
   head: () => ({
@@ -9,6 +9,7 @@ export const Route = createFileRoute("/slownik")({
       description: "Polskie tłumaczenia angielskich pojęć tradingowych: long, short, RSI, breakout, funding rate, likwidacja, POC i więcej.",
       path: "/slownik",
     }),
+    links: seoLinks("/slownik"),
     scripts: [
       jsonLd({
         "@context": "https://schema.org",

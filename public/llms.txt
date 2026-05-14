@@ -1,0 +1,23 @@
+# CryptoPuls
+
+> Polski monitor rynku krypto: sentyment, siła relatywna top 100, watchlista, alerty cenowe, setupy tradingowe, mapy płynności i AI asystent.
+
+CryptoPuls pomaga polskojęzycznym traderom szybko ocenić, co robić teraz na rynku krypto. Dane: CoinGecko + Binance (live).
+
+## Pages
+
+- [Pulpit](/): Reżim rynku, top setupy, alerty, watchlista.
+- [Siła relatywna](/sila): Ranking siły top 100 krypto.
+- [Setupy](/setupy): Sygnały tradingowe wg interwału (1h/4h/1d).
+- [Sentyment](/sentyment): Sentyment rynku i mediów.
+- [Przepływ](/przeplyw): Przepływy kapitału między aktywami.
+- [Alerty](/alerty): Alerty cenowe i wskaźnikowe.
+- [Likwidacja](/likwidacja): Mapa likwidacji i lewar.
+- [Squeeze radar](/squeeze): Skaner kompresji zmienności (long/short squeeze).
+- [Asystent AI](/asystent): Czat z modelami AI o rynku.
+- [Cennik](/pricing): Plan Pro (49 PLN/mies, 490 PLN/rok).
+- [Słownik](/slownik): Polskie tłumaczenia pojęć tradingowych.
+
+## Optional
+
+- [Ulubione](/ulubione): Twoja watchlista.

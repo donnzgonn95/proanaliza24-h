@@ -6,7 +6,7 @@ import { ChangePill, formatMoney } from "@/components/StatPill";
 import { cn } from "@/lib/utils";
 import { Radio, Settings } from "lucide-react";
 
-import { buildSeo } from "@/lib/seo";
+import { buildSeo, seoLinks, jsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/sila")({
   head: () => ({
@@ -15,6 +15,16 @@ export const Route = createFileRoute("/sila")({
       description: "Siła relatywna top 100 kryptowalut — które monety przewodzą rynkowi, a które tracą momentum w 24h i 7 dniach.",
       path: "/sila",
     }),
+    links: seoLinks("/sila"),
+    scripts: [
+      jsonLd({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "Ranking siły top 100 krypto",
+        description: "Lista top 100 kryptowalut wg siły relatywnej.",
+        url: "https://dosprawdzenioappjasnyl.lovable.app/sila",
+      }),
+    ],
   }),
   component: SilaPage,
 });

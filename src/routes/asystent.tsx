@@ -30,7 +30,7 @@ import {
   type Conversation,
 } from "@/lib/chat-history";
 
-import { buildSeo } from "@/lib/seo";
+import { buildSeo, seoLinks } from "@/lib/seo";
 
 export const Route = createFileRoute("/asystent")({
   head: () => ({
@@ -39,6 +39,7 @@ export const Route = createFileRoute("/asystent")({
       description: "Chat z asystentem AI, podsumowanie alertów i raport inwestorski. Wybór modelu (Gemini/GPT-5), historia rozmów, limity i koszty.",
       path: "/asystent",
     }),
+    links: seoLinks("/asystent"),
   }),
   component: AsystentPage,
 });

@@ -89,10 +89,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "canonical", href: "https://cryptopuls.lovable.app/" },
       { rel: "preconnect", href: "https://api.coingecko.com" },
       { rel: "preconnect", href: "https://stream.binance.com" },
       { rel: "dns-prefetch", href: "https://api.binance.com" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "CryptoPuls",
+          url: "https://dosprawdzenioappjasnyl.lovable.app",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "CryptoPuls",
+          url: "https://dosprawdzenioappjasnyl.lovable.app",
+        }),
+      },
     ],
   }),
   shellComponent: RootShell,

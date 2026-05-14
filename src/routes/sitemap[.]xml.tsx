@@ -8,8 +8,11 @@ const STATIC_PATHS = [
   "/przeplyw",
   "/alerty",
   "/likwidacja",
+  "/squeeze",
   "/asystent",
   "/slownik",
+  "/pricing",
+  "/ulubione",
 ];
 
 const POPULAR_COINS = [
@@ -21,7 +24,7 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: () => {
-        const base = "https://cryptopuls.lovable.app";
+        const base = "https://dosprawdzenioappjasnyl.lovable.app";
         const lastmod = new Date().toISOString().slice(0, 10);
         const urls = [
           ...STATIC_PATHS.map((p) => `${base}${p}`),
