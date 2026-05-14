@@ -3,8 +3,9 @@
  * Tytuł i opis są nadpisywane w każdej child route, og:* dziedziczą się
  * tylko gdy nie ustawione — więc zawsze dostarczamy komplet.
  */
-export const SITE_NAME = "CryptoPuls";
-export const SITE_URL = "https://dosprawdzenioappjasnyl.lovable.app";
+import { SITE_URL, SITE_NAME, DEFAULT_OG_IMAGE } from "@/lib/site";
+
+export { SITE_URL, SITE_NAME };
 
 type SeoMeta = Array<Record<string, string>>;
 type SeoLinks = Array<Record<string, string>>;
@@ -18,6 +19,7 @@ export function buildSeo(opts: {
 }): SeoMeta {
   const fullTitle = opts.title.endsWith(SITE_NAME) ? opts.title : `${opts.title} · ${SITE_NAME}`;
   const url = opts.path ? `${SITE_URL}${opts.path}` : SITE_URL;
+  const image = opts.image ?? DEFAULT_OG_IMAGE;
   const meta: SeoMeta = [
     { title: fullTitle },
     { name: "description", content: opts.description },
@@ -26,14 +28,12 @@ export function buildSeo(opts: {
     { property: "og:type", content: opts.type ?? "website" },
     { property: "og:site_name", content: SITE_NAME },
     { property: "og:url", content: url },
-    { name: "twitter:card", content: opts.image ? "summary_large_image" : "summary" },
+    { property: "og:image", content: image },
+    { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: fullTitle },
     { name: "twitter:description", content: opts.description },
+    { name: "twitter:image", content: image },
   ];
-  if (opts.image) {
-    meta.push({ property: "og:image", content: opts.image });
-    meta.push({ name: "twitter:image", content: opts.image });
-  }
   return meta;
 }
 
@@ -49,4 +49,16 @@ export function jsonLd(payload: Record<string, unknown>) {
     type: "application/ld+json",
     children: JSON.stringify(payload),
   };
+}
+
+/** CollectionPage JSON-LD — bezpieczny szablon dla list (alerty, setupy, siła itd.). */
+export function collectionJsonLd(opts: { name: string; description: string; path: string }) {
+  return jsonLd({
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: opts.name,
+    description: opts.description,
+    url: `${SITE_URL}${opts.path}`,
+    isPartOf: { "@type": "WebSite", name: SITE_NAME, url: SITE_URL },
+  });
 }

@@ -23,25 +23,28 @@ import { useLiveCoins } from "@/lib/binance";
 import { CoinSearch } from "@/components/CoinSearch";
 import { WatchlistMenu } from "@/components/WatchlistMenu";
 import eljotLogo from "@/assets/eljot-logo.png";
+import { useTranslation } from "@/i18n/LanguageProvider";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const nav = [
-  { to: "/", label: "Panel", icon: Sparkles },
-  { to: "/sentyment", label: "Sentyment", icon: Activity },
-  { to: "/przeplyw", label: "Przepływ", icon: ArrowLeftRight },
-  { to: "/sila", label: "Siła", icon: BarChart3 },
-  { to: "/setupy", label: "Setupy", icon: Target },
-  { to: "/squeeze", label: "Squeeze", icon: Flame },
-  { to: "/alerty", label: "Alerty", icon: Bell },
-  { to: "/historia-alertow", label: "Historia", icon: Bell },
-  { to: "/likwidacja", label: "Płynność", icon: Droplets },
-  { to: "/asystent", label: "Asystent", icon: Bot },
-  { to: "/slownik", label: "Słownik", icon: BookOpen },
-  { to: "/pricing", label: "Pro", icon: Sparkle },
-  { to: "/ustawienia", label: "Ustawienia", icon: Settings },
+  { to: "/", labelKey: "nav.dashboard", icon: Sparkles },
+  { to: "/sentyment", labelKey: "nav.sentyment", icon: Activity },
+  { to: "/przeplyw", labelKey: "nav.przeplyw", icon: ArrowLeftRight },
+  { to: "/sila", labelKey: "nav.sila", icon: BarChart3 },
+  { to: "/setupy", labelKey: "nav.setupy", icon: Target },
+  { to: "/squeeze", labelKey: "nav.squeeze", icon: Flame },
+  { to: "/alerty", labelKey: "nav.alerty", icon: Bell },
+  { to: "/historia-alertow", labelKey: "nav.historia", icon: Bell },
+  { to: "/likwidacja", labelKey: "nav.likwidacja", icon: Droplets },
+  { to: "/asystent", labelKey: "nav.asystent", icon: Bot },
+  { to: "/slownik", labelKey: "nav.slownik", icon: BookOpen },
+  { to: "/pricing", labelKey: "nav.pricing", icon: Sparkle },
+  { to: "/ustawienia", labelKey: "nav.ustawienia", icon: Settings },
 ] as const;
 
 export function Header() {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const qc = useQueryClient();
   const { data, isFetching, isError, dataUpdatedAt } = useLiveCoins();
@@ -96,6 +99,7 @@ export function Header() {
             <span className="num rounded border border-border bg-background px-1 text-[10px]">⌘K</span>
           </button>
           <WatchlistMenu />
+          <LanguageSwitcher compact />
           <div
             className="hidden items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-[10px] uppercase tracking-widest text-muted-foreground sm:flex"
             title={`Ostatnia aktualizacja: ${updated}`}
@@ -141,7 +145,7 @@ export function Header() {
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                   )}
                 >
-                  {n.label}
+                  {t(n.labelKey)}
                 </Link>
               );
             })}
@@ -165,7 +169,7 @@ export function Header() {
                   )}
                 >
                   <Icon className="h-4 w-4" />
-                  {n.label}
+                  {t(n.labelKey)}
                 </Link>
               );
             })}

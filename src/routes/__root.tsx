@@ -76,14 +76,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "CryptoPuls" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "robots", content: "index, follow" },
-      { title: "(Aktualne dane/Trendy 8T/  ver.Premium- 3 Special Agent" },
-      { property: "og:title", content: "(Aktualne dane/Trendy 8T/  ver.Premium- 3 Special Agent" },
-      { name: "twitter:title", content: "(Aktualne dane/Trendy 8T/  ver.Premium- 3 Special Agent" },
-      { name: "description", content: "Latwo stworzyc aplikacje, płaci sie za wiedze w niej zawarta." },
-      { property: "og:description", content: "Latwo stworzyc aplikacje, płaci sie za wiedze w niej zawarta." },
-      { name: "twitter:description", content: "Latwo stworzyc aplikacje, płaci sie za wiedze w niej zawarta." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/SEELnZfOq2fDrqL2I2ema9v6pP52/social-images/social-1778726145210-c96f82b0-0b08-4b9f-80f5-c79cbeab5a85.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/SEELnZfOq2fDrqL2I2ema9v6pP52/social-images/social-1778726145210-c96f82b0-0b08-4b9f-80f5-c79cbeab5a85.webp" },
+      { title: "CryptoPuls — puls rynku krypto: sentyment, setupy, alerty" },
+      { property: "og:title", content: "CryptoPuls — puls rynku krypto" },
+      { name: "twitter:title", content: "CryptoPuls — puls rynku krypto" },
+      { name: "description", content: "Polski monitor rynku krypto: sentyment, siła relatywna top 100, setupy, alerty na żywo, AI asystent i squeeze radar." },
+      { property: "og:description", content: "Polski monitor rynku krypto: sentyment, siła, setupy, alerty, AI asystent." },
+      { name: "twitter:description", content: "Polski monitor rynku krypto: sentyment, siła, setupy, alerty, AI asystent." },
+      { property: "og:image", content: "https://dosprawdzenioappjasnyl.lovable.app/og-image.png" },
+      { name: "twitter:image", content: "https://dosprawdzenioappjasnyl.lovable.app/og-image.png" },
+      { property: "og:site_name", content: "CryptoPuls" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
@@ -101,15 +102,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@type": "Organization",
           name: "CryptoPuls",
           url: "https://dosprawdzenioappjasnyl.lovable.app",
+          logo: "https://dosprawdzenioappjasnyl.lovable.app/og-image.png",
         }),
       },
       {
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
-          "@type": "WebSite",
+          "@type": "WebApplication",
           name: "CryptoPuls",
           url: "https://dosprawdzenioappjasnyl.lovable.app",
+          description: "Monitor rynku krypto: sentyment, siła relatywna, setupy, alerty na żywo i AI asystent.",
+          applicationCategory: "FinanceApplication",
+          operatingSystem: "Web",
+          isPartOf: { "@type": "WebSite", name: "CryptoPuls", url: "https://dosprawdzenioappjasnyl.lovable.app" },
         }),
       },
     ],
@@ -140,6 +146,7 @@ import { useAlertNotifications } from "@/lib/notifications";
 import { CommandPalette } from "@/components/CommandPalette";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { LanguageProvider } from "@/i18n/LanguageProvider";
 
 function NotificationsBridge() {
   useAlertNotifications();
@@ -151,17 +158,19 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-background">
-        <PaymentTestModeBanner />
-        <Header />
-        <main className="mx-auto max-w-6xl px-4 pb-32 pt-32 md:pb-24 md:pt-24">
-          <Outlet />
-        </main>
-        <MobileBottomNav />
-        <CommandPalette />
-        <NotificationsBridge />
-        <Toaster position="top-right" richColors closeButton />
-      </div>
+      <LanguageProvider>
+        <div className="min-h-screen bg-background">
+          <PaymentTestModeBanner />
+          <Header />
+          <main className="mx-auto max-w-6xl px-4 pb-32 pt-32 md:pb-24 md:pt-24">
+            <Outlet />
+          </main>
+          <MobileBottomNav />
+          <CommandPalette />
+          <NotificationsBridge />
+          <Toaster position="top-right" richColors closeButton />
+        </div>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
