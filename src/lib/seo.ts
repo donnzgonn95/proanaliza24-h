@@ -38,19 +38,12 @@ export function buildSeo(opts: {
 }
 
 /** Self-referencing canonical for a given route path. Use in `links` of each leaf route. */
-export function seoLinks(path: string): SeoLinks {
-  const href = `${SITE_URL}${path}`;
-  return [{ rel: "canonical", href }];
-}
-
-/** JSON-LD helper — zwraca obiekt do sekcji `scripts` w head(). */
 export function jsonLd(payload: Record<string, unknown>) {
   return {
     type: "application/ld+json",
-    children: JSON.stringify(payload),
+    innerHTML: JSON.stringify(payload),
   };
 }
-
 /** CollectionPage JSON-LD — bezpieczny szablon dla list (alerty, setupy, siła itd.). */
 export function collectionJsonLd(opts: { name: string; description: string; path: string }) {
   return jsonLd({
