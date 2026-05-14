@@ -6,7 +6,7 @@ import { generateSetups, type SetupTimeframe } from "@/lib/signals";
 import { setups as demoSetups } from "@/lib/demo-data";
 import { Radio, Loader2, Clock } from "lucide-react";
 
-import { buildSeo } from "@/lib/seo";
+import { buildSeo, seoLinks } from "@/lib/seo";
 
 export const Route = createFileRoute("/setupy")({
   head: () => ({
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/setupy")({
       description: "Generowane na żywo setupy z poziomami wejścia, stop-loss, take-profit i uzasadnieniem, filtrowane wg aktualnego reżimu rynku.",
       path: "/setupy",
     }),
+    links: seoLinks("/setupy"),
   }),
   component: SetupyPage,
 });

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { capitalFlow } from "@/lib/demo-data";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
 
-import { buildSeo } from "@/lib/seo";
+import { buildSeo, seoLinks } from "@/lib/seo";
 
 export const Route = createFileRoute("/przeplyw")({
   head: () => ({
@@ -11,6 +11,7 @@ export const Route = createFileRoute("/przeplyw")({
       description: "Wizualizacja rotacji kapitału między Bitcoinem, Ethereum, Solaną i altcoinami w ostatnich 14 dniach.",
       path: "/przeplyw",
     }),
+    links: seoLinks("/przeplyw"),
   }),
   component: PrzeplywPage,
 });

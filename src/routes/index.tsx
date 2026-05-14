@@ -13,7 +13,7 @@ import { useDashboardLayout, type SectionId } from "@/lib/dashboard-layout";
 import { ArrowRight, Radio, RotateCcw, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import { buildSeo } from "@/lib/seo";
+import { buildSeo, seoLinks } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,6 +22,7 @@ export const Route = createFileRoute("/")({
       description: "Polski monitor sentymentu, siły relatywnej top 100 krypto, watchlista, alerty cenowe i AI asystent — jednoznaczna rekomendacja co robić teraz.",
       path: "/",
     }),
+    links: seoLinks("/"),
   }),
   component: Index,
 });

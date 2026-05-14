@@ -6,7 +6,7 @@ import { ChangePill, formatMoney } from "@/components/StatPill";
 import { cn } from "@/lib/utils";
 import { Radio, Settings } from "lucide-react";
 
-import { buildSeo } from "@/lib/seo";
+import { buildSeo, seoLinks } from "@/lib/seo";
 
 export const Route = createFileRoute("/sila")({
   head: () => ({
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/sila")({
       description: "Siła relatywna top 100 kryptowalut — które monety przewodzą rynkowi, a które tracą momentum w 24h i 7 dniach.",
       path: "/sila",
     }),
+    links: seoLinks("/sila"),
   }),
   component: SilaPage,
 });

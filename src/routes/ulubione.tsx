@@ -4,7 +4,7 @@ import { Star, X, Plus, Search, LayoutGrid, List as ListIcon, ArrowUpDown } from
 import { useWatchlist } from "@/lib/watchlist";
 import { useTopCoins } from "@/lib/top-coins";
 import { ChangePill, formatMoney } from "@/components/StatPill";
-import { buildSeo } from "@/lib/seo";
+import { buildSeo, seoLinks } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/ulubione")({
@@ -14,6 +14,7 @@ export const Route = createFileRoute("/ulubione")({
       description: "Twoja lista obserwowanych kryptowalut: ceny na żywo, zmiana 24h, sortowanie i wyszukiwanie.",
       path: "/ulubione",
     }),
+    links: seoLinks("/ulubione"),
   }),
   component: UlubionePage,
 });

@@ -3,7 +3,7 @@ import { sentiment } from "@/lib/demo-data";
 import { ChangePill, formatMoney } from "@/components/StatPill";
 import { cn } from "@/lib/utils";
 
-import { buildSeo } from "@/lib/seo";
+import { buildSeo, seoLinks } from "@/lib/seo";
 
 export const Route = createFileRoute("/sentyment")({
   head: () => ({
@@ -12,6 +12,7 @@ export const Route = createFileRoute("/sentyment")({
       description: "Indeks Strachu i Chciwości, dominacja BTC/ETH, kapitalizacja całego rynku — agregat nastrojów rynkowych.",
       path: "/sentyment",
     }),
+    links: seoLinks("/sentyment"),
   }),
   component: SentymentPage,
 });

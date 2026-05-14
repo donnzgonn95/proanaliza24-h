@@ -24,7 +24,7 @@ import {
   Waves,
 } from "lucide-react";
 
-import { buildSeo } from "@/lib/seo";
+import { buildSeo, seoLinks } from "@/lib/seo";
 
 export const Route = createFileRoute("/likwidacja")({
   head: () => ({
@@ -33,6 +33,7 @@ export const Route = createFileRoute("/likwidacja")({
       description: "Heatmapa likwidacji, klastry wolumenu (POC), detektor sweepów, strefy spoofingu i nierównowaga księgi zleceń na świecach.",
       path: "/likwidacja",
     }),
+    links: seoLinks("/likwidacja"),
   }),
   component: LiquidityPage,
 });

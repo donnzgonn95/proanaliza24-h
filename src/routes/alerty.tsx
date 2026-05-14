@@ -6,7 +6,7 @@ import { useLiveCoins } from "@/lib/binance";
 import { generateAlerts } from "@/lib/signals";
 import { alerts as demoAlerts } from "@/lib/demo-data";
 
-import { buildSeo } from "@/lib/seo";
+import { buildSeo, seoLinks } from "@/lib/seo";
 
 export const Route = createFileRoute("/alerty")({
   head: () => ({
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/alerty")({
       description: "Wybicia, RSI ekstremalne, zmiana wolumenu, dominacja BTC, funding rate — wszystkie sygnały w jednym miejscu.",
       path: "/alerty",
     }),
+    links: seoLinks("/alerty"),
   }),
   component: AlertyPage,
 });
