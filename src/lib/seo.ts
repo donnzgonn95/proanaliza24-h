@@ -41,7 +41,7 @@ export function buildSeo(opts: {
 export function jsonLd(payload: Record<string, unknown>) {
   return {
     type: "application/ld+json",
-    innerHTML: JSON.stringify(payload),
+    children: JSON.stringify(payload),
   };
 }
 /** CollectionPage JSON-LD — bezpieczny szablon dla list (alerty, setupy, siła itd.). */
