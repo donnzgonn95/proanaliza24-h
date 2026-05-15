@@ -38,6 +38,10 @@ export function buildSeo(opts: {
 }
 
 /** Self-referencing canonical for a given route path. Use in `links` of each leaf route. */
+export function seoLinks(path: string): SeoLinks {
+  return [{ rel: "canonical", href: `${SITE_URL}${path}` }];
+}
+
 export function jsonLd(payload: Record<string, unknown>) {
   return {
     type: "application/ld+json",
