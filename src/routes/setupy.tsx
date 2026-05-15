@@ -192,6 +192,6 @@ function Cell({ label, value, tone }: { label: string; value: string; tone?: "bu
         tone === "bull" && "text-bull",
         tone === "bear" && "text-bear",
       )}>{value}</div>
-  </div>
-  </>
-);
+    </div>
+  );
+}
