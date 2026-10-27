@@ -1,12 +1,12 @@
 ProAnaliza24-H – Marktanalyse und datenbasierte Entscheidungsunterstützung
 
-"Deutsch" (#deutsch) | "Polski" (#polski)
+[🇩🇪 Deutsch](#deutsch) · [🇵🇱 Polski](#polski)
 
 ---
 
 <a id="deutsch"></a>
 
-Deutsch
+## 🇩🇪 Deutsch
 
 Projektübersicht
 
@@ -62,7 +62,7 @@ Die Anwendung ist ein Analysewerkzeug. Sie garantiert weder Prognosegenauigkeit 
 
 <a id="polski"></a>
 
-Polski
+## 🇵🇱 Polski
 
 Opis projektu
 
